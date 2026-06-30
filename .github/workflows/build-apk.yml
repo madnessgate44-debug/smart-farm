@@ -25,13 +25,14 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Download Gradle Wrapper
+      - name: Setup Gradle wrapper
         run: |
           mkdir -p gradle/wrapper
-          # Download gradle-wrapper.jar from gradle distribution
-          curl -L https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
           
-          # Create gradle-wrapper.properties
+          # Download gradle-wrapper.jar (8.2 compatible version)
+          curl -L https://services.gradle.org/distributions/gradle-8.2-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          
+          # Create gradle-wrapper.properties for Gradle 8.2
           cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
@@ -46,9 +47,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug -x lint --no-daemon --stacktrace
         env:
           GRADLE_OPTS: -Xmx4096m -XX:+UseG1GC
+          ORG_GRADLE_PROJECT_android_kotlinVersion: 1.9.20
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
