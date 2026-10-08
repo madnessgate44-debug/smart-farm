@@ -42,6 +42,7 @@ class FarmRepository(private val dao: FarmDao) {
 
     val allAttendance: Flow<List<Attendance>> = dao.getAllAttendance()
     suspend fun insertAttendance(attendance: Attendance) = withContext(Dispatchers.IO) { dao.insertAttendance(attendance) }
+    suspend fun deleteAttendance(attendance: Attendance) = withContext(Dispatchers.IO) { dao.deleteAttendance(attendance) }
 
     val allContacts: Flow<List<Contact>> = dao.getAllContacts()
     suspend fun insertContact(contact: Contact) = withContext(Dispatchers.IO) { dao.insertContact(contact) }
@@ -67,10 +68,12 @@ class FarmRepository(private val dao: FarmDao) {
 
     val allTreasuryTransactions: Flow<List<TreasuryTransaction>> = dao.getAllTreasuryTransactions()
     suspend fun insertTreasuryTransaction(transaction: TreasuryTransaction) = withContext(Dispatchers.IO) { dao.insertTreasuryTransaction(transaction) }
+    suspend fun deleteTreasuryTransaction(transaction: TreasuryTransaction) = withContext(Dispatchers.IO) { dao.deleteTreasuryTransaction(transaction) }
 
     val allDebts: Flow<List<Debt>> = dao.getAllDebts()
     val activeDebts: Flow<List<Debt>> = dao.getActiveDebts()
     suspend fun insertDebt(debt: Debt) = withContext(Dispatchers.IO) { dao.insertDebt(debt) }
+    suspend fun deleteDebt(debt: Debt) = withContext(Dispatchers.IO) { dao.deleteDebt(debt) }
 
     val allMeetings: Flow<List<Meeting>> = dao.getAllMeetings()
     suspend fun insertMeeting(meeting: Meeting) = withContext(Dispatchers.IO) { dao.insertMeeting(meeting) }
