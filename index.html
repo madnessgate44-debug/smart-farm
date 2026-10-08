@@ -58,14 +58,14 @@ function renderOnboarding(){
  if(step<=9&&!s.events.some(x=>x.type==='bot'&&x.text.includes(onboardQuestion(step))))setTimeout(()=>{let q=onboardQuestion(step);event('bot',q);render();speak(q)},100);
 }
 function onboardQuestion(step){return ['','اسمك إيه؟','اسم المزرعة أو اسم المكان إيه؟','المزرعة فين؟','تقريباً كام أرض أو حقل عندك؟','إيه المحاصيل الأساسية؟','عندك عمال؟ كام واحد تقريباً؟','فيه حيوانات أو مواشي؟','إيه المعدات أو الآلات المهمة عندك؟','إيه أهم أصناف المخزن أو الاحتياجات اللي لازم أتابعها؟'][step]||'إيه أهم حاجة تحب بليغ يركز عليها في إدارة المزرعة؟'}
-function startOnboardVoice(){auto=false;start()}
+function startOnboardVoice(){toggleVoice()}
 function handleOnboard(t){
- const p=s.profile, step=!p.name?1:!p.farmName?2:!p.location?3:!p.lands?4:!p.crops?5:!p.workers?6:!p.livestock?7:!p.equipment?8:!p.inventory?9:10;
+ const p=s.profile; step=!p.name?1:!p.farmName?2:!p.location?3:!p.lands?4:!p.crops?5:!p.workers?6:!p.livestock?7:!p.equipment?8:!p.inventory?9:10;
  if(step===1)p.name=t.trim(); else if(step===2)p.farmName=t.trim(); else if(step===3)p.location=t.trim(); else if(step===4)p.lands=t.trim(); else if(step===5)p.crops=t.trim(); else if(step===6){p.workers=t.trim();let q=num(t);if(q){s.workers=[];for(let i=1;i<=q;i++)s.workers.push({code:'W'+String(i).padStart(2,'0'),name:'عامل '+i,job:'عامل'})}} else if(step===7)p.livestock=t.trim(); else if(step===8)p.equipment=t.trim(); else if(step===9)p.inventory=t.trim(); else p.priorities=t.trim();
  s.memory.push({key:['owner','farm','location','lands','crops','workers','livestock','equipment','inventory','priorities'][step-1],value:t,date:Date.now()});
  if(step===10)p.complete=true;save();
  if(p.complete){event('bot','تم. عرفت الأساسيات عن مزرعتك. من الآن اتكلم معي كمديرك التشغيلي.');speak('تم. عرفت الأساسيات عن مزرعتك. اتكلم معي بشكل طبيعي.');render()}
- else {event('user',t);render()}
+ else {render()}
 }
 function matchesWorker(t){return s.workers.filter(w=>norm(t).includes(norm(w.name)))}
 function matchesItem(t){return s.inventory.filter(x=>norm(t).includes(norm(x.name))||norm(t).includes(norm(x.category||'')))}
@@ -112,20 +112,59 @@ function tasks(){let a=s.tasks.filter(x=>x.status!=='مكتملة');return {repl
 function commitment(t){let q=has(t,['بكره','غدا','غداً'])?'غداً':'موعد غير محدد';s.notes.push({text:t,due:q,created:Date.now()});event('action','حفظ التزام: '+t);save();return {reply:'حفظت الالتزام في ذاكرة بليغ: «'+t+'». الموعد: '+q+'. لن أعتبره شراءً أو تنفيذًا تلقائياً.',trace:['استخرجت الالتزام.','حفظته كذاكرة تشغيلية.','لم أنفذ شراءً أو حركة مالية.']}}
 function problem(t){s.notes.push({text:'مشكلة: '+t,created:Date.now()});event('action','تسجيل مشكلة: '+t);save();return {reply:'سجلت المشكلة كبلاغ تشغيلي: «'+t+'». محتاج تفاصيل أكثر عن الأرض أو المحصول لو عايز نحللها، ولن أخترع تشخيصاً من غير بيانات.',trace:['سجلت البلاغ.','لم أختلق تشخيصاً.']}}
 function overview(){let a=s.tasks.filter(x=>x.status!=='مكتملة').length,b=s.inventory.filter(x=>+x.qty<=+(x.min||0)).length;return {reply:'ملخص سريع: '+a+' مهام مفتوحة، '+b+' أصناف تحت الحد الأدنى، '+s.workers.length+' عمال مسجلين، و'+s.notes.length+' ملاحظات أو التزامات.',trace:['راجعت المهام.','راجعت المخزون.','راجعت العمال والذاكرة.']}}
+async function micPreflight(){
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+   event('system','المتصفح لا يتيح فحص الميكروفون هنا. استخدم Chrome على Android.');
+   render(); return false;
+ }
+ try{
+   const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+   stream.getTracks().forEach(t=>t.stop());
+   return true;
+ }catch(e){
+   auto=false;listening=false;
+   const map={NotAllowedError:'تم رفض إذن الميكروفون. افتح إعدادات الموقع واسمح بالميكروفون.',PermissionDeniedError:'تم رفض إذن الميكروفون. اسمح به من إعدادات المتصفح.',NotFoundError:'لم يتم العثور على ميكروفون.',NotReadableError:'الميكروفون مشغول بواسطة تطبيق آخر.',SecurityError:'المتصفح يمنع الوصول للميكروفون هنا.'};
+   event('system',map[e.name]||('تعذر فتح الميكروفون: '+(e.name||'خطأ غير معروف')));
+   render(); return false;
+ }
+}
 function start(){
- let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){event('system','التعرف الصوتي غير مدعوم في هذا المتصفح. استخدم Chrome على الهاتف.');render();return}
- if(listening)return;rec=new SR();rec.lang='ar-EG';rec.interimResults=false;rec.continuous=false;
- rec.onstart=()=>{listening=true;status.textContent='● يستمع الآن';render()};
- rec.onresult=e=>process(e.results[0][0].transcript);
- rec.onerror=e=>{listening=false;if(e.error==='not-allowed'){auto=false;event('system','اسمح للمتصفح بالميكروفون مرة واحدة.')}else event('system','تعذر التقاط الكلام: '+e.error);render()};
- rec.onend=()=>{listening=false;if(auto&&!busy)setTimeout(start,500);else{status.textContent='● جاهز';render()}};
- try{rec.start()}catch(e){}
+ let SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){auto=false;event('system','التعرف الصوتي غير مدعوم في هذا المتصفح. استخدم Chrome على Android.');render();return false}
+ if(listening)return true;
+ try{
+   rec=new SR(); rec.lang='ar-EG'; rec.interimResults=false; rec.continuous=false; rec.maxAlternatives=1;
+   rec.onstart=()=>{listening=true;status.textContent='● يستمع الآن';render()};
+   rec.onresult=e=>{const text=e.results?.[0]?.[0]?.transcript?.trim();if(text)process(text);else event('system','لم ألتقط كلاماً واضحاً. حاول مرة أخرى.');};
+   rec.onerror=e=>{
+     listening=false;
+     const map={not-allowed:'إذن الميكروفون غير مسموح. اسمح به من إعدادات الموقع.',service-not-allowed:'خدمة التعرف الصوتي غير متاحة لهذا الموقع أو المتصفح.',no-speech:'لم أسمع كلاماً. اضغط الميكروفون وتحدث بوضوح.',audio-capture:'لم أستطع الوصول إلى الميكروفون.',network:'خدمة التعرف الصوتي لم تستجب. جرّب مرة أخرى.',aborted:'تم إيقاف الاستماع.'};
+     if(e.error!=='aborted')event('system',map[e.error]||('تعذر التعرف على الكلام: '+e.error));
+     if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture')auto=false;
+     render();
+   };
+   rec.onend=()=>{
+     listening=false;
+     if(auto&&!busy)setTimeout(()=>start(),350);
+     else{status.textContent='● جاهز';render()}
+   };
+   rec.start();
+   return true;
+ }catch(e){
+   listening=false;
+   event('system','لم يبدأ الميكروفون. اضغط السماح للميكروفون ثم حاول مرة أخرى. ('+(e.name||'start error')+')');
+   render(); return false;
+ }
 }
 function stop(){auto=false;try{rec?.stop()}catch(e){}listening=false;status.textContent='● جاهز';render()}
-function toggle(){if(listening)stop();else{auto=true;start()}}
+async function toggleVoice(){
+ if(listening){stop();return}
+ const ok=await micPreflight();
+ if(ok){auto=true;start()}
+}
+function toggle(){toggleVoice()}
 function sendText(){let x=document.getElementById('textInput');if(x&&x.value.trim()){let t=x.value.trim();x.value='';process(t)}}
 function go(t){process(t)}
-function startOnboardVoice(){auto=true;start()}
 function resetDemo(){if(confirm('مسح ذاكرة بليغ المحلية وإعادة محادثة التعريف؟')){localStorage.removeItem(STORE);location.reload()}}
 render();
 </script></body></html>
