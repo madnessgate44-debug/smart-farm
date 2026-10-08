@@ -12,8 +12,15 @@ class BaleghEngine(
     private val memory = BaleghMemory(repository)
     private val planner = BaleghPlanner()
     private val executor = BaleghActionExecutor(repository)
+    private val onboarding = BaleghOnboarding(memory)
 
     suspend fun processInput(input: BaleghInput): BaleghResponse {
+        val onboardingResponse = onboarding.handle(input.text)
+        if (onboardingResponse != null) {
+            val analysis = BaleghAnalysis(onboardingResponse, BaleghIntent.GENERAL_QUERY, emptyList(), InformationFactType.USER_REQUEST, 0.95f)
+            speakIfVoice(input, onboardingResponse)
+            return BaleghResponse(onboardingResponse, analysis)
+        }
         val context = contextProvider.getContextFor(input.text)
         val analysis = understandingProvider.analyze(input, context)
         if (analysis.clarificationNeeded) {
