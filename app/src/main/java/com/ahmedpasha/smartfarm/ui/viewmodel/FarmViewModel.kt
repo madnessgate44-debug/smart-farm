@@ -49,19 +49,29 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
     ))
     val baleghMessages: StateFlow<List<BaleghChatMessage>> = _baleghMessages.asStateFlow()
 
-    val summaryData = combine(tasks, attendance, inventoryItems, debts, purchases, sales) { tasks, attendance, inventory, debts, purchases, sales ->
+    private val dashboardBase = combine(tasks, attendance, inventoryItems, debts, purchases) { taskList, attendanceList, inventoryList, debtList, purchaseList ->
+        DashboardBase(
+            tasks = taskList,
+            attendance = attendanceList,
+            inventory = inventoryList,
+            debts = debtList,
+            purchases = purchaseList
+        )
+    }
+
+    val summaryData = dashboardBase.combine(sales) { base, salesList ->
         val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
         val month = today.substring(0, 7)
         DashboardSummary(
-            totalTasks = tasks.size,
-            completedTasks = tasks.count { it.status == "مكتمل" },
-            inProgressTasks = tasks.count { it.status == "جاري العمل" },
-            pendingTasks = tasks.count { it.status == "قيد الانتظار" },
-            presentWorkers = attendance.count { it.date == today && it.status == "حاضر" },
-            lowStockCount = inventory.count { it.currentBalance <= it.minThreshold },
-            activeDebtsCount = debts.count { it.status != "مسدد بالكامل" },
-            monthlyRevenue = sales.filter { it.date.startsWith(month) }.sumOf { it.totalRevenue },
-            monthlyExpenses = purchases.filter { it.date.startsWith(month) }.sumOf { it.totalCost }
+            totalTasks = base.tasks.size,
+            completedTasks = base.tasks.count { it.status == "مكتمل" },
+            inProgressTasks = base.tasks.count { it.status == "جاري العمل" },
+            pendingTasks = base.tasks.count { it.status == "قيد الانتظار" },
+            presentWorkers = base.attendance.count { it.date == today && it.status == "حاضر" },
+            lowStockCount = base.inventory.count { it.currentBalance <= it.minThreshold },
+            activeDebtsCount = base.debts.count { it.status != "مسدد بالكامل" },
+            monthlyRevenue = salesList.filter { it.date.startsWith(month) }.sumOf { it.totalRevenue },
+            monthlyExpenses = base.purchases.filter { it.date.startsWith(month) }.sumOf { it.totalCost }
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardSummary())
 
@@ -90,7 +100,7 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
 
     fun triggerBaleghVoice() {
         if (!speechProvider.isAvailable()) {
-            _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "التعرف الصوتي غير متاح على هذا الجهاز.") }
+            _baleghMessages.update { it + BaleghChatMessage(sender = BaleghChatMessage.Sender.SYSTEM, text = "التعرف الصوتي غير متاح على هذا الجهاز.") }
             return
         }
         if (_baleghListening.value) {
@@ -147,6 +157,10 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addChatMessage(message: String, isUser: Boolean) { if (isUser) sendMessageToBalegh(message) }
 
+    fun deleteAttendance(item: Attendance) = viewModelScope.launch { repository.deleteAttendance(item) }
+    fun deleteTreasuryTransaction(item: TreasuryTransaction) = viewModelScope.launch { repository.deleteTreasuryTransaction(item) }
+    fun deleteDebt(item: Debt) = viewModelScope.launch { repository.deleteDebt(item) }
+
     override fun onCleared() {
         speechProvider.release()
         super.onCleared()
@@ -185,6 +199,14 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteTask(x: FarmTask) = viewModelScope.launch { repository.deleteTask(x) }
     fun markAllWorkersPresent(date: String) = viewModelScope.launch { workers.value.forEach { worker -> repository.insertAttendance(Attendance(workerCode = worker.code, date = date, status = "حاضر")) } }
 }
+
+data class DashboardBase(
+    val tasks: List<FarmTask>,
+    val attendance: List<Attendance>,
+    val inventory: List<InventoryItem>,
+    val debts: List<Debt>,
+    val purchases: List<Purchase>
+)
 
 data class DashboardSummary(
     val totalTasks: Int = 0,

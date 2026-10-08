@@ -252,7 +252,7 @@ interface FarmDao {
                 sourceType = "SALE",
                 sourceId = saleId.toInt()
             )
-            dao.insertTreasuryTransaction(transaction)
+            insertTreasuryTransaction(transaction)
         }
         return saleId
     }
