@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 interface FarmDao {
     // Lands
     @Query("SELECT * FROM lands ORDER BY code ASC")
-    fun getAllLands(): Flow&lt;List&lt;Land&gt;&gt;
+    fun getAllLands(): Flow<List<Land>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLand(land: Land)
@@ -18,7 +18,7 @@ interface FarmDao {
 
     // Crops
     @Query("SELECT * FROM crops ORDER BY code ASC")
-    fun getAllCrops(): Flow&lt;List&lt;Crop&gt;&gt;
+    fun getAllCrops(): Flow<List<Crop>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCrop(crop: Crop)
@@ -28,7 +28,7 @@ interface FarmDao {
 
     // Operations
     @Query("SELECT * FROM operations ORDER BY date DESC")
-    fun getAllOperations(): Flow&lt;List&lt;Operation&gt;&gt;
+    fun getAllOperations(): Flow<List<Operation>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOperation(operation: Operation)
@@ -38,10 +38,10 @@ interface FarmDao {
 
     // Inventory Items
     @Query("SELECT * FROM inventory_items ORDER BY code ASC")
-    fun getAllInventoryItems(): Flow&lt;List&lt;InventoryItem&gt;&gt;
+    fun getAllInventoryItems(): Flow<List<InventoryItem>>
 
-    @Query("SELECT * FROM inventory_items WHERE currentBalance &lt;= minThreshold")
-    fun getLowStockItems(): Flow&lt;List&lt;InventoryItem&gt;&gt;
+    @Query("SELECT * FROM inventory_items WHERE currentBalance <= minThreshold")
+    fun getLowStockItems(): Flow<List<InventoryItem>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertInventoryItem(item: InventoryItem)
@@ -51,14 +51,14 @@ interface FarmDao {
 
     // Inventory Movements
     @Query("SELECT * FROM inventory_movements ORDER BY date DESC")
-    fun getAllInventoryMovements(): Flow&lt;List&lt;InventoryMovement&gt;&gt;
+    fun getAllInventoryMovements(): Flow<List<InventoryMovement>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertInventoryMovement(movement: InventoryMovement)
 
     // Animals
     @Query("SELECT * FROM animals ORDER BY code ASC")
-    fun getAllAnimals(): Flow&lt;List&lt;Animal&gt;&gt;
+    fun getAllAnimals(): Flow<List<Animal>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAnimal(animal: Animal)
@@ -68,17 +68,17 @@ interface FarmDao {
 
     // Animal Production
     @Query("SELECT * FROM animal_production ORDER BY date DESC")
-    fun getAllAnimalProduction(): Flow&lt;List&lt;AnimalProduction&gt;&gt;
+    fun getAllAnimalProduction(): Flow<List<AnimalProduction>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAnimalProduction(production: AnimalProduction)
 
     // Workers
     @Query("SELECT * FROM workers ORDER BY code ASC")
-    fun getAllWorkers(): Flow&lt;List&lt;Worker&gt;&gt;
+    fun getAllWorkers(): Flow<List<Worker>>
 
     @Query("SELECT * FROM workers WHERE status = 'نشط'")
-    fun getActiveWorkers(): Flow&lt;List&lt;Worker&gt;&gt;
+    fun getActiveWorkers(): Flow<List<Worker>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorker(worker: Worker)
@@ -88,14 +88,14 @@ interface FarmDao {
 
     // Attendance
     @Query("SELECT * FROM attendance ORDER BY date DESC")
-    fun getAllAttendance(): Flow&lt;List&lt;Attendance&gt;&gt;
+    fun getAllAttendance(): Flow<List<Attendance>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAttendance(attendance: Attendance)
 
     // Contacts
     @Query("SELECT * FROM contacts ORDER BY code ASC")
-    fun getAllContacts(): Flow&lt;List&lt;Contact&gt;&gt;
+    fun getAllContacts(): Flow<List<Contact>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertContact(contact: Contact)
@@ -105,7 +105,7 @@ interface FarmDao {
 
     // Equipment
     @Query("SELECT * FROM equipment ORDER BY code ASC")
-    fun getAllEquipment(): Flow&lt;List&lt;Equipment&gt;&gt;
+    fun getAllEquipment(): Flow<List<Equipment>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEquipment(equipment: Equipment)
@@ -115,21 +115,21 @@ interface FarmDao {
 
     // Maintenance
     @Query("SELECT * FROM maintenance ORDER BY date DESC")
-    fun getAllMaintenance(): Flow&lt;List&lt;Maintenance&gt;&gt;
+    fun getAllMaintenance(): Flow<List<Maintenance>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMaintenance(maintenance: Maintenance)
 
     // Water Logs
     @Query("SELECT * FROM water_logs ORDER BY date DESC")
-    fun getAllWaterLogs(): Flow&lt;List&lt;WaterLog&gt;&gt;
+    fun getAllWaterLogs(): Flow<List<WaterLog>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWaterLog(waterLog: WaterLog)
 
     // Purchases
     @Query("SELECT * FROM purchases ORDER BY date DESC")
-    fun getAllPurchases(): Flow&lt;List&lt;Purchase&gt;&gt;
+    fun getAllPurchases(): Flow<List<Purchase>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPurchase(purchase: Purchase): Long
@@ -139,7 +139,7 @@ interface FarmDao {
 
     // Sales
     @Query("SELECT * FROM sales ORDER BY date DESC")
-    fun getAllSales(): Flow&lt;List&lt;Sale&gt;&gt;
+    fun getAllSales(): Flow<List<Sale>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSale(sale: Sale): Long
@@ -149,7 +149,7 @@ interface FarmDao {
 
     // Treasury
     @Query("SELECT * FROM treasury_transactions ORDER BY date DESC")
-    fun getAllTreasuryTransactions(): Flow&lt;List&lt;TreasuryTransaction&gt;&gt;
+    fun getAllTreasuryTransactions(): Flow<List<TreasuryTransaction>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTreasuryTransaction(transaction: TreasuryTransaction)
@@ -159,17 +159,17 @@ interface FarmDao {
 
     // Debts
     @Query("SELECT * FROM debts ORDER BY date DESC")
-    fun getAllDebts(): Flow&lt;List&lt;Debt&gt;&gt;
+    fun getAllDebts(): Flow<List<Debt>>
 
     @Query("SELECT * FROM debts WHERE status != 'مسدد بالكامل'")
-    fun getActiveDebts(): Flow&lt;List&lt;Debt&gt;&gt;
+    fun getActiveDebts(): Flow<List<Debt>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDebt(debt: Debt)
 
     // Meetings
     @Query("SELECT * FROM meetings ORDER BY date DESC")
-    fun getAllMeetings(): Flow&lt;List&lt;Meeting&gt;&gt;
+    fun getAllMeetings(): Flow<List<Meeting>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMeeting(meeting: Meeting)
@@ -179,14 +179,14 @@ interface FarmDao {
 
     // Preferences
     @Query("SELECT * FROM ahmed_preferences ORDER BY id ASC")
-    fun getAllPreferences(): Flow&lt;List&lt;AhmedPreference&gt;&gt;
+    fun getAllPreferences(): Flow<List<AhmedPreference>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPreference(preference: AhmedPreference)
 
     // Tasks
     @Query("SELECT * FROM farm_tasks ORDER BY date DESC")
-    fun getAllTasks(): Flow&lt;List&lt;FarmTask&gt;&gt;
+    fun getAllTasks(): Flow<List<FarmTask>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: FarmTask)
@@ -199,16 +199,16 @@ interface FarmDao {
 
     // Analytics
     @Query("SELECT COUNT(*) FROM farm_tasks WHERE status = 'مكتمل'")
-    fun getCompletedTasksCount(): Flow&lt;Int&gt;
+    fun getCompletedTasksCount(): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM attendance WHERE date = :date AND status = 'حاضر'")
-    fun getPresentWorkersCount(date: String): Flow&lt;Int&gt;
+    fun getPresentWorkersCount(date: String): Flow<Int>
 
     @Query("SELECT SUM(totalRevenue) FROM sales WHERE date LIKE :month")
-    fun getMonthlySales(month: String): Flow&lt;Double?&gt;
+    fun getMonthlySales(month: String): Flow<Double?>
 
     @Query("SELECT SUM(totalCost) FROM purchases WHERE date LIKE :month")
-    fun getMonthlyPurchases(month: String): Flow&lt;Double?&gt;
+    fun getMonthlyPurchases(month: String): Flow<Double?>
 
     // ============ Transactional Business Operations ============
 
