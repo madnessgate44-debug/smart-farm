@@ -93,6 +93,9 @@ interface FarmDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAttendance(attendance: Attendance)
 
+    @Delete
+    suspend fun deleteAttendance(attendance: Attendance)
+
     // Contacts
     @Query("SELECT * FROM contacts ORDER BY code ASC")
     fun getAllContacts(): Flow<List<Contact>>
@@ -154,6 +157,9 @@ interface FarmDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTreasuryTransaction(transaction: TreasuryTransaction)
 
+    @Delete
+    suspend fun deleteTreasuryTransaction(transaction: TreasuryTransaction)
+
     @Query("DELETE FROM treasury_transactions WHERE sourceType = :sourceType AND sourceId = :sourceId")
     suspend fun deleteTreasuryTransactionsBySource(sourceType: String, sourceId: Int)
 
@@ -166,6 +172,9 @@ interface FarmDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDebt(debt: Debt)
+
+    @Delete
+    suspend fun deleteDebt(debt: Debt)
 
     // Meetings
     @Query("SELECT * FROM meetings ORDER BY date DESC")
@@ -214,7 +223,7 @@ interface FarmDao {
 
     @Transaction
     suspend fun recordPurchase(purchase: Purchase): Long {
-        val purchaseId = dao.insertPurchase(purchase)
+        val purchaseId = insertPurchase(purchase)
         if (purchase.paid > 0) {
             val transaction = TreasuryTransaction(
                 date = purchase.date,
@@ -225,14 +234,14 @@ interface FarmDao {
                 sourceType = "PURCHASE",
                 sourceId = purchaseId.toInt()
             )
-            dao.insertTreasuryTransaction(transaction)
+            insertTreasuryTransaction(transaction)
         }
         return purchaseId
     }
 
     @Transaction
     suspend fun recordSale(sale: Sale): Long {
-        val saleId = dao.insertSale(sale)
+        val saleId = insertSale(sale)
         if (sale.received > 0) {
             val transaction = TreasuryTransaction(
                 date = sale.date,
@@ -250,14 +259,14 @@ interface FarmDao {
 
     @Transaction
     suspend fun deletePurchaseAndReverse(purchase: Purchase) {
-        dao.deleteTreasuryTransactionsBySource("PURCHASE", purchase.id)
-        dao.deletePurchase(purchase)
+        deleteTreasuryTransactionsBySource("PURCHASE", purchase.id)
+        deletePurchase(purchase)
     }
 
     @Transaction
     suspend fun deleteSaleAndReverse(sale: Sale) {
-        dao.deleteTreasuryTransactionsBySource("SALE", sale.id)
-        dao.deleteSale(sale)
+        deleteTreasuryTransactionsBySource("SALE", sale.id)
+        deleteSale(sale)
     }
 
     @Query("SELECT * FROM inventory_items WHERE code = :itemCode")
@@ -272,10 +281,10 @@ interface FarmDao {
             .any { movement.movementType.contains(it, ignoreCase = true) }
         val delta = if (isIncoming) movement.quantity else -movement.quantity
 
-        val updated = dao.guardedUpdateBalance(movement.itemCode, delta)
+        val updated = guardedUpdateBalance(movement.itemCode, delta)
         if (updated == 0) {
             throw IllegalStateException("Insufficient balance for item ${movement.itemCode}. Cannot decrease below zero.")
         }
-        dao.insertInventoryMovement(movement)
+        insertInventoryMovement(movement)
     }
 }

@@ -45,7 +45,7 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
     val baleghListening: StateFlow<Boolean> = _baleghListening.asStateFlow()
 
     private val _baleghMessages = MutableStateFlow(listOf(
-        BaleghChatMessage(BaleghChatMessage.Sender.BALEGH, "أهلاً بك يا أستاذ أحمد. أنا بليغ، العقل التشغيلي للمزرعة. اتكلم معي أو اكتب طلبك.")
+        BaleghChatMessage(sender = BaleghChatMessage.Sender.BALEGH, text = "أهلاً بك يا أستاذ أحمد. أنا بليغ، العقل التشغيلي للمزرعة. اتكلم معي أو اكتب طلبك.")
     ))
     val baleghMessages: StateFlow<List<BaleghChatMessage>> = _baleghMessages.asStateFlow()
 
@@ -69,12 +69,12 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sendMessageToBalegh(text: String, source: InputSource = InputSource.TEXT) {
         if (text.isBlank()) return
-        _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.USER, text) }
+        _baleghMessages.update { it + BaleghChatMessage(sender = BaleghChatMessage.Sender.USER, text = text) }
         _baleghUiState.value = BaleghUiState.Processing
         viewModelScope.launch {
             try {
                 val response = baleghEngine.processInput(BaleghInput(text = text, source = source))
-                _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.BALEGH, response.responseText, response.pendingActionProposal) }
+                _baleghMessages.update { it + BaleghChatMessage(sender = BaleghChatMessage.Sender.BALEGH, text = response.responseText, proposal = response.pendingActionProposal) }
                 _baleghUiState.value = response.pendingActionProposal?.let { BaleghUiState.AwaitingConfirmation(it) } ?: BaleghUiState.Idle
                 if (source == InputSource.VOICE && response.pendingActionProposal == null) {
                     kotlinx.coroutines.delay(700)
@@ -82,7 +82,7 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 _baleghUiState.value = BaleghUiState.Error(e.message ?: "حدث خطأ غير معروف")
-                _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "حدث خطأ: " + (e.message ?: "غير معروف")) }
+                _baleghMessages.update { it + BaleghChatMessage(sender = BaleghChatMessage.Sender.SYSTEM, text = "حدث خطأ: " + (e.message ?: "غير معروف")) }
                 if (source == InputSource.VOICE) startBaleghVoice()
             }
         }
@@ -115,7 +115,7 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
             },
             onError = { error ->
                 _baleghListening.value = false
-                _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, error) }
+                _baleghMessages.update { it + BaleghChatMessage(sender = BaleghChatMessage.Sender.SYSTEM, text = error) }
             }
         )
     }
@@ -125,14 +125,14 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
             _baleghUiState.value = BaleghUiState.Processing
             baleghEngine.executeAction(proposal).fold(
                 onSuccess = { message ->
-                    _baleghMessages.update { list -> list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = true) else it } + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, message) }
+                    _baleghMessages.update { list -> list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = true) else it } + BaleghChatMessage(sender = BaleghChatMessage.Sender.SYSTEM, text = message) }
                     _baleghUiState.value = BaleghUiState.Idle
                     speechProvider.speak(message)
                 },
                 onFailure = { error ->
                     val message = error.message ?: "غير معروف"
                     _baleghUiState.value = BaleghUiState.Error(message)
-                    _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "فشل التنفيذ: " + message) }
+                    _baleghMessages.update { it + BaleghChatMessage(sender = BaleghChatMessage.Sender.SYSTEM, text = "فشل التنفيذ: " + message) }
                     speechProvider.speak("فشل التنفيذ: " + message)
                 }
             )
@@ -140,7 +140,7 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun cancelBaleghAction(proposal: BaleghActionProposal) {
-        _baleghMessages.update { list -> list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = false) else it } + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "تم إلغاء الإجراء.") }
+        _baleghMessages.update { list -> list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = false) else it } + BaleghChatMessage(sender = BaleghChatMessage.Sender.SYSTEM, text = "تم إلغاء الإجراء.") }
         _baleghUiState.value = BaleghUiState.Idle
         speechProvider.speak("تم إلغاء الإجراء.")
     }

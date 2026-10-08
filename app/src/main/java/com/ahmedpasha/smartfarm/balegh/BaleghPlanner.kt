@@ -26,9 +26,9 @@ class BaleghPlanner {
         val steps = when (analysis.intent) {
             BaleghIntent.CREATE_TASK, BaleghIntent.COMMITMENT -> {
                 val worker = analysis.entities.firstOrNull { it.type == EntityType.WORKER }
+                    ?: return BaleghPlan("العامل غير محدد.", emptyList(), analysis.confidence, "تقصد أي عامل؟")
                 val deadline = analysis.entities.firstOrNull { it.type == EntityType.DEADLINE }
-                if (worker?.resolvedCode.isNullOrBlank()) emptyList()
-                else listOf(
+                listOf(
                     BaleghPlanStep(
                         id = "create-task",
                         description = "إنشاء مهمة مرتبطة بالعامل " + worker.rawValue,

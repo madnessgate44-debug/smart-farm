@@ -156,11 +156,13 @@ fun TasksScreen(viewModel: FarmViewModel) {
         )
     }
 
-    FloatingActionButton(
-        onClick = { showAddDialog = true },
-        modifier = Modifier.padding(16.dp).align(Alignment.End),
-        containerColor = MaterialTheme.colorScheme.primary
-    ) { Icon(Icons.Default.Add, contentDescription = "إضافة مهمة") }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        FloatingActionButton(
+            onClick = { showAddDialog = true },
+            modifier = Modifier.padding(16.dp),
+            containerColor = MaterialTheme.colorScheme.primary
+        ) { Icon(Icons.Default.Add, contentDescription = "إضافة مهمة") }
+    }
 }
 
 @Composable

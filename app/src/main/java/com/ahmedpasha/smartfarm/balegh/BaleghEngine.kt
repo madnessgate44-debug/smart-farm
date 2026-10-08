@@ -1,9 +1,6 @@
 package com.ahmedpasha.smartfarm.balegh
 
 import com.ahmedpasha.smartfarm.data.repository.FarmRepository
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class BaleghEngine(
     repository: FarmRepository,
@@ -19,7 +16,6 @@ class BaleghEngine(
     suspend fun processInput(input: BaleghInput): BaleghResponse {
         val context = contextProvider.getContextFor(input.text)
         val analysis = understandingProvider.analyze(input, context)
-
         if (analysis.clarificationNeeded) {
             val message = analysis.clarificationQuestion ?: "محتاج توضيح بسيط."
             speakIfVoice(input, message)
@@ -28,7 +24,7 @@ class BaleghEngine(
 
         val state = farmStateProvider.loadFor(analysis.intent, input.text)
         val plan = planner.plan(input, analysis, state)
-        val response = when (analysis.intent) {
+        val result = when (analysis.intent) {
             BaleghIntent.INVENTORY_QUERY -> inventoryResponse(state)
             BaleghIntent.FINANCE_QUERY -> financeResponse(state)
             BaleghIntent.WORKER_QUERY -> workerResponse(state)
@@ -37,33 +33,34 @@ class BaleghEngine(
             BaleghIntent.FARM_STATUS -> farmStatusResponse(state)
             BaleghIntent.CREATE_TASK, BaleghIntent.COMMITMENT -> {
                 val planned = plan.steps.firstOrNull()?.action
-                if (planned == null) ResultText("محتاج أعرف العامل أو تفاصيل المهمة قبل ما أسجلها.")
-                else ResultProposal("فهمت الطلب. راجع التفاصيل ثم أكد التنفيذ.", planned)
+                if (planned == null) {
+                    ResultText("محتاج أعرف العامل أو تفاصيل المهمة قبل ما أسجلها.")
+                } else {
+                    ResultText("فهمت الطلب. راجع التفاصيل ثم أكد التنفيذ.", planned)
+                }
             }
             BaleghIntent.PURCHASE_ACTION -> createPurchase(analysis)
             BaleghIntent.SALE_ACTION -> createSale(analysis)
-            BaleghIntent.PROBLEM_REPORT -> ResultProposal(
+            BaleghIntent.PROBLEM_REPORT -> ResultText(
                 "سجلت فهمي للمشكلة. راجعها قبل الحفظ.",
                 BaleghActionProposal(
-                    BaleghActionType.RECORD_OBSERVATION,
-                    "حفظ الملاحظة: " + input.text,
-                    mapOf("details" to input.text),
-                    analysis.confidence
+                    actionType = BaleghActionType.RECORD_OBSERVATION,
+                    description = "حفظ الملاحظة: " + input.text,
+                    parameters = mapOf("details" to input.text),
+                    confidence = analysis.confidence
                 )
             )
             BaleghIntent.GENERAL_QUERY -> generalResponse(state)
             else -> ResultText("فهمت الطلب، لكن ما زال لا يوجد إجراء مطابق وآمن له.")
         }
 
-        val finalResponse = BaleghResponse(response.message, analysis, response.proposal)
+        val finalResponse = BaleghResponse(result.message, analysis, result.proposal)
         speakIfVoice(input, finalResponse.responseText)
         return finalResponse
     }
 
     suspend fun executeAction(proposal: BaleghActionProposal): Result<String> = executor.execute(proposal)
-
     fun getSpeechProvider(): BaleghSpeechProvider = speechProvider
-
     suspend fun memoryFacts(): List<BaleghMemoryFact> = memory.all()
 
     private fun inventoryResponse(state: BaleghFarmState): ResultText {
@@ -104,39 +101,39 @@ class BaleghEngine(
     private fun farmStatusResponse(state: BaleghFarmState): ResultText =
         ResultText("حالياً: " + state.lands.size + " أراضٍ، " + state.crops.size + " محاصيل، " + state.workers.size + " عمال، " + state.inventory.size + " أصناف مخزون، و" + state.tasks.count { it.status != "مكتمل" } + " مهام غير مكتملة.")
 
-    private fun generalResponse(state: BaleghFarmState): ResultText {
+    private suspend fun generalResponse(state: BaleghFarmState): ResultText {
         val memoryCount = memory.all().size
         return ResultText("أنا متصل ببيانات المزرعة الحالية. عندي " + memoryCount + " معلومة محفوظة في ذاكرة بليغ. قل لي ما الذي تريد فحصه أو تنفيذه.")
     }
 
-    private fun createPurchase(analysis: BaleghAnalysis): ResultProposal {
+    private fun createPurchase(analysis: BaleghAnalysis): ResultText {
         val item = analysis.entities.firstOrNull { it.type == EntityType.INVENTORY_ITEM }
         val amount = analysis.entities.firstOrNull { it.type == EntityType.AMOUNT }
-        if (item == null || amount == null) return ResultProposal("لتسجيل الشراء أحتاج اسم الصنف وقيمته.", null)
+        if (item == null || amount == null) return ResultText("لتسجيل الشراء أحتاج اسم الصنف وقيمته.")
         val quantity = analysis.entities.firstOrNull { it.type == EntityType.QUANTITY }?.normalizedValue ?: "1"
-        return ResultProposal(
+        return ResultText(
             "سأضيف عملية الشراء بهذه البيانات. راجعها ثم أكد التنفيذ.",
             BaleghActionProposal(
-                BaleghActionType.CREATE_PURCHASE,
-                "شراء " + item.rawValue + " بقيمة " + amount.normalizedValue + " جنيه، كمية " + quantity,
-                mapOf("item" to item.rawValue, "totalCost" to amount.normalizedValue, "quantity" to quantity),
-                analysis.confidence
+                actionType = BaleghActionType.CREATE_PURCHASE,
+                description = "شراء " + item.rawValue + " بقيمة " + amount.normalizedValue + " جنيه، كمية " + quantity,
+                parameters = mapOf("item" to item.rawValue, "totalCost" to amount.normalizedValue, "quantity" to quantity),
+                confidence = analysis.confidence
             )
         )
     }
 
-    private fun createSale(analysis: BaleghAnalysis): ResultProposal {
+    private fun createSale(analysis: BaleghAnalysis): ResultText {
         val item = analysis.entities.firstOrNull { it.type == EntityType.CROP }
         val amount = analysis.entities.firstOrNull { it.type == EntityType.AMOUNT }
-        if (item == null || amount == null) return ResultProposal("لتسجيل البيع أحتاج اسم المحصول وقيمته.", null)
+        if (item == null || amount == null) return ResultText("لتسجيل البيع أحتاج اسم المحصول وقيمته.")
         val quantity = analysis.entities.firstOrNull { it.type == EntityType.QUANTITY }?.normalizedValue ?: "1"
-        return ResultProposal(
+        return ResultText(
             "سأضيف عملية البيع بهذه البيانات. راجعها ثم أكد التنفيذ.",
             BaleghActionProposal(
-                BaleghActionType.CREATE_SALE,
-                "بيع " + item.rawValue + " بقيمة " + amount.normalizedValue + " جنيه، كمية " + quantity,
-                mapOf("item" to item.rawValue, "totalRevenue" to amount.normalizedValue, "quantity" to quantity),
-                analysis.confidence
+                actionType = BaleghActionType.CREATE_SALE,
+                description = "بيع " + item.rawValue + " بقيمة " + amount.normalizedValue + " جنيه، كمية " + quantity,
+                parameters = mapOf("item" to item.rawValue, "totalRevenue" to amount.normalizedValue, "quantity" to quantity),
+                confidence = analysis.confidence
             )
         )
     }
@@ -145,7 +142,8 @@ class BaleghEngine(
         if (input.source == InputSource.VOICE) speechProvider.speak(text)
     }
 
-    private fun today() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-    private data class ResultText(val message: String, val proposal: BaleghActionProposal? = null)
-    private data class ResultProposal(val message: String, val proposal: BaleghActionProposal?)
+    private data class ResultText(
+        val message: String,
+        val proposal: BaleghActionProposal? = null
+    )
 }
