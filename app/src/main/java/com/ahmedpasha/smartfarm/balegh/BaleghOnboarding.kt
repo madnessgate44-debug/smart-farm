@@ -92,5 +92,5 @@ class BaleghOnboarding(private val memory: BaleghMemory) {
         listOf("skip", "تخطى", "عدي", "بعد كده", "بعدين", "مش دلوقتي", "لاحقا", "لاحقاً").any { value.equals(it, true) }
 
     private fun firstNumber(value: String): Int? =
-        Regex("""d+""").find(value)?.value?.toIntOrNull()
+        Regex("""[0-9]+""").find(value)?.value?.toIntOrNull()
 }

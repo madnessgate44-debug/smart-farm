@@ -65,14 +65,14 @@ class LocalBaleghUnderstandingProvider : BaleghUnderstandingProvider {
     private fun hasAny(text: String, vararg values: String) = values.any { text.contains(it, true) }
 
     private fun extractAmount(text: String): BaleghEntity? {
-        val match = Regex("""(d+(?:[.,]d+)?)s*(جنيه|ج|ألف|الف)""").find(text) ?: return null
+        val match = Regex("""([0-9]+(?:[.,][0-9]+)?)[ ]*(جنيه|ج|ألف|الف)""").find(text) ?: return null
         val number = match.groupValues[1].replace(",", ".").toDoubleOrNull() ?: return null
         val amount = if (match.groupValues[2] == "ألف" || match.groupValues[2] == "الف") number * 1000 else number
         return BaleghEntity(EntityType.AMOUNT, match.value, amount.toString())
     }
 
     private fun extractQuantity(text: String): BaleghEntity? {
-        val match = Regex("""(d+(?:[.,]d+)?)s*(كيلو|كجم|طن|شكارة|شكاير|قطعة|قطع|لتر|لترات)""").find(text) ?: return null
+        val match = Regex("""([0-9]+(?:[.,][0-9]+)?)[ ]*(كيلو|كجم|طن|شكارة|شكاير|قطعة|قطع|لتر|لترات)""").find(text) ?: return null
         return BaleghEntity(EntityType.QUANTITY, match.value, match.groupValues[1].replace(",", "."))
     }
 
