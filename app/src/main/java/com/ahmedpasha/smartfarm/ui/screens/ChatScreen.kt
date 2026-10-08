@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +27,7 @@ fun ChatScreen(viewModel: FarmViewModel) {
     var input by remember { mutableStateOf("") }
     val messages by viewModel.baleghMessages.collectAsState()
     val state by viewModel.baleghUiState.collectAsState()
+    val listening by viewModel.baleghListening.collectAsState()
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
@@ -51,14 +53,29 @@ fun ChatScreen(viewModel: FarmViewModel) {
                 }
             }
         }
+        if (listening) {
+            Text(
+                "بليغ يستمع الآن... اتكلم.",
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(
                 onClick = viewModel::triggerBaleghVoice,
-                modifier = Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondary)
-            ) { Icon(Icons.Default.Mic, "صوت", tint = Color.White) }
+                modifier = Modifier.size(52.dp).clip(CircleShape).background(
+                    if (listening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Icon(if (listening) Icons.Default.MicOff else Icons.Default.Mic, "صوت", tint = Color.White)
+            }
             OutlinedTextField(
-                value = input, onValueChange = { input = it }, modifier = Modifier.weight(1f),
-                placeholder = { Text("اكتب طلبك لبليغ...") }, maxLines = 3, shape = RoundedCornerShape(24.dp)
+                value = input,
+                onValueChange = { input = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("اتكلم مع بليغ أو اكتب طلبك...") },
+                maxLines = 3,
+                shape = RoundedCornerShape(24.dp)
             )
             IconButton(
                 enabled = input.isNotBlank() && state !is BaleghUiState.Processing,
