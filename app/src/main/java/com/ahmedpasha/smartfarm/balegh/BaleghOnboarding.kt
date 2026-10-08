@@ -3,13 +3,9 @@ package com.ahmedpasha.smartfarm.balegh
 class BaleghOnboarding(private val memory: BaleghMemory) {
     suspend fun handle(text: String): String? {
         val value = text.trim()
-        val completed = memory.find("onboarding.completed")?.value == "true"
-        if (completed) return null
-
+        if (memory.find("onboarding.completed")?.value == "true") return null
         if (value.isBlank()) return "خلينا نبدأ بتعريف بليغ بالمزرعة. اسم المزرعة إيه؟"
-        if (isSkip(value)) {
-            return skipCurrent()
-        }
+        if (isSkip(value)) return skipCurrent()
 
         return when {
             !isDone("farm.name") -> {
@@ -21,14 +17,12 @@ class BaleghOnboarding(private val memory: BaleghMemory) {
                 "تمام. عندنا الموقع. كام أرض أو قطعة أساسية عندك؟"
             }
             !isDone("farm.land_count") -> {
-                val count = firstNumber(value)
-                if (count == null) return "عايز العدد التقريبي للأراضي أو القطع، مثلاً: 5."
+                val count = firstNumber(value) ?: return "عايز العدد التقريبي للأراضي أو القطع، مثلاً: 5."
                 memory.rememberIfNew(BaleghMemoryFact("farm.land_count", count.toString(), "farm_scope"))
                 "تمام. كام عامل شغالين في المزرعة تقريباً؟"
             }
             !isDone("farm.worker_count") -> {
-                val count = firstNumber(value)
-                if (count == null) return "عايز عدد العمال التقريبي، مثلاً: 12."
+                val count = firstNumber(value) ?: return "عايز عدد العمال التقريبي، مثلاً: 12."
                 memory.rememberIfNew(BaleghMemoryFact("farm.worker_count", count.toString(), "farm_scope"))
                 "إيه أهم المحاصيل الموجودة حالياً؟ قولهم لي بطريقتك، وممكن تقول أكتر من محصول."
             }
@@ -54,27 +48,49 @@ class BaleghOnboarding(private val memory: BaleghMemory) {
 
     private suspend fun skipCurrent(): String {
         return when {
-            !isDone("farm.name") -> "تمام، نقدر نكمل بعدين. لكن قبل أي تشغيل حقيقي، هحتاج اسم المزرعة. أقدر أساعدك الآن في اختبار بليغ."
-            !isDone("farm.location") -> "تمام. هنسيب الموقع لوقت لاحق. كام أرض أو قطعة أساسية عندك؟"
-            !isDone("farm.land_count") -> "تمام. هنكمل بدون العدد حالياً. كام عامل شغالين تقريباً؟"
-            !isDone("farm.worker_count") -> "تمام. هنكمل بدون العدد حالياً. إيه أهم المحاصيل الموجودة؟"
-            !isDone("farm.crops_description") -> "تمام. هنكمل بدون المحاصيل الآن. عندك حيوانات أو مواشي؟"
-            !isDone("farm.livestock_description") -> "تمام. وآخر سؤال: إيه أهم أصناف المخزن حالياً؟"
+            !isDone("farm.name") -> {
+                markSkipped("farm.name")
+                "تمام، هنسيب اسم المزرعة لوقت لاحق. فين موقع المزرعة؟"
+            }
+            !isDone("farm.location") -> {
+                markSkipped("farm.location")
+                "تمام. هنسيب الموقع لوقت لاحق. كام أرض أو قطعة أساسية عندك؟"
+            }
+            !isDone("farm.land_count") -> {
+                markSkipped("farm.land_count")
+                "تمام. هنكمل بدون عدد الأراضي حالياً. كام عامل شغالين تقريباً؟"
+            }
+            !isDone("farm.worker_count") -> {
+                markSkipped("farm.worker_count")
+                "تمام. هنكمل بدون عدد العمال حالياً. إيه أهم المحاصيل الموجودة؟"
+            }
+            !isDone("farm.crops_description") -> {
+                markSkipped("farm.crops_description")
+                "تمام. هنكمل بدون وصف المحاصيل الآن. عندك حيوانات أو مواشي؟"
+            }
+            !isDone("farm.livestock_description") -> {
+                markSkipped("farm.livestock_description")
+                "تمام. وآخر سؤال: إيه أهم أصناف المخزن حالياً؟"
+            }
             !isDone("farm.inventory_description") -> {
+                markSkipped("farm.inventory_description")
                 memory.rememberIfNew(BaleghMemoryFact("onboarding.completed", "true", "system"))
                 "تمام. خلصنا الإعداد الأساسي."
             }
-            else -> null
+            else -> "تمام. الإعداد الأساسي مكتمل."
         }
     }
 
-    private suspend fun isDone(key: String): Boolean = memory.find(key) != null || memory.find(key + ".skipped") != null
+    private suspend fun isDone(key: String): Boolean =
+        memory.find(key) != null || memory.find(key + ".skipped") != null
 
-    private suspend fun markSkipped(key: String) { memory.rememberIfNew(BaleghMemoryFact(key + ".skipped", "true", "onboarding")) }
+    private suspend fun markSkipped(key: String) {
+        memory.rememberIfNew(BaleghMemoryFact(key + ".skipped", "true", "onboarding"))
+    }
 
     private fun isSkip(value: String): Boolean =
         listOf("skip", "تخطى", "عدي", "بعد كده", "بعدين", "مش دلوقتي", "لاحقا", "لاحقاً").any { value.equals(it, true) }
 
     private fun firstNumber(value: String): Int? =
-        Regex("\d+").find(value)?.value?.toIntOrNull()
+        Regex("""d+""").find(value)?.value?.toIntOrNull()
 }
