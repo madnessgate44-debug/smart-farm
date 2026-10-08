@@ -27,13 +27,29 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.2'
+      - name: Setup Gradle wrapper
+        run: |
+          mkdir -p gradle/wrapper
+          
+          # Download gradle-wrapper.jar (8.2 compatible version)
+          curl -L https://services.gradle.org/distributions/gradle-8.2-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          
+          # Create gradle-wrapper.properties for Gradle 8.2
+          cat > gradle/wrapper/gradle-wrapper.properties &lt;&lt; 'EOF'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
+          networkTimeout=10000
+          validateDistributionUrl=true
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug -x lint --no-daemon --stacktrace
         env:
           GRADLE_OPTS: -Xmx4096m -XX:+UseG1GC
           ORG_GRADLE_PROJECT_android_kotlinVersion: 1.9.20
@@ -49,7 +65,7 @@ jobs:
       - name: Build summary
         if: success()
         run: |
-          echo "## Build Successful" >> $GITHUB_STEP_SUMMARY
+          echo "## Build Successful ✅" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**APK Location:** app/build/outputs/apk/debug/" >> $GITHUB_STEP_SUMMARY
           echo "**Package:** com.ahmedpasha.smartfarm" >> $GITHUB_STEP_SUMMARY
@@ -57,6 +73,6 @@ jobs:
       - name: Build failed summary
         if: failure()
         run: |
-          echo "## Build Failed" >> $GITHUB_STEP_SUMMARY
+          echo "## Build Failed ❌" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the logs above for the failing step." >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY

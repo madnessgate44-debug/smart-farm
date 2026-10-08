@@ -11,8 +11,7 @@ import kotlinx.coroutines.launch
 
 class FarmViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = (application as FarmApplication).repository
-    private val speechProvider = AndroidBaleghSpeechProvider(application)
-    private val baleghEngine = BaleghEngine(repository, speechProvider = speechProvider)
+    private val baleghEngine = BaleghEngine(repository)
 
     val lands = repository.allLands.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val crops = repository.allCrops.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -39,14 +38,16 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _selectedTab = MutableStateFlow("أراضي")
     val selectedTab: StateFlow<String> = _selectedTab.asStateFlow()
+
     private val _baleghUiState = MutableStateFlow<BaleghUiState>(BaleghUiState.Idle)
     val baleghUiState: StateFlow<BaleghUiState> = _baleghUiState.asStateFlow()
-    private val _baleghListening = MutableStateFlow(false)
-    val baleghListening: StateFlow<Boolean> = _baleghListening.asStateFlow()
 
-    private val _baleghMessages = MutableStateFlow(listOf(
-        BaleghChatMessage(BaleghChatMessage.Sender.BALEGH, "أهلاً بك يا أستاذ أحمد. أنا بليغ، العقل التشغيلي للمزرعة. اتكلم معي أو اكتب طلبك.")
-    ))
+    private val _baleghMessages = MutableStateFlow(
+        listOf(BaleghChatMessage(
+            sender = BaleghChatMessage.Sender.BALEGH,
+            text = "أهلاً بك يا أستاذ أحمد. أنا بليغ، العقل التشغيلي للمزرعة. كيف يمكنني مساعدتك؟"
+        ))
+    )
     val baleghMessages: StateFlow<List<BaleghChatMessage>> = _baleghMessages.asStateFlow()
 
     val summaryData = combine(tasks, attendance, inventoryItems, debts, purchases, sales) { tasks, attendance, inventory, debts, purchases, sales ->
@@ -67,57 +68,21 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSelectedTab(tab: String) { _selectedTab.value = tab }
 
-    fun sendMessageToBalegh(text: String, source: InputSource = InputSource.TEXT) {
+    fun sendMessageToBalegh(text: String) {
         if (text.isBlank()) return
         _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.USER, text) }
         _baleghUiState.value = BaleghUiState.Processing
         viewModelScope.launch {
             try {
-                val response = baleghEngine.processInput(BaleghInput(text = text, source = source))
+                val response = baleghEngine.processInput(BaleghInput(text))
                 _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.BALEGH, response.responseText, response.pendingActionProposal) }
                 _baleghUiState.value = response.pendingActionProposal?.let { BaleghUiState.AwaitingConfirmation(it) } ?: BaleghUiState.Idle
-                if (source == InputSource.VOICE && response.pendingActionProposal == null) {
-                    kotlinx.coroutines.delay(700)
-                    startBaleghVoice()
-                }
             } catch (e: Exception) {
-                _baleghUiState.value = BaleghUiState.Error(e.message ?: "حدث خطأ غير معروف")
-                _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "حدث خطأ: " + (e.message ?: "غير معروف")) }
-                if (source == InputSource.VOICE) startBaleghVoice()
+                val message = e.message ?: "غير معروف"
+                _baleghUiState.value = BaleghUiState.Error(message)
+                _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "حدث خطأ: " + message) }
             }
         }
-    }
-
-    fun triggerBaleghVoice() {
-        if (!speechProvider.isAvailable()) {
-            _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "التعرف الصوتي غير متاح على هذا الجهاز.") }
-            return
-        }
-        if (_baleghListening.value) {
-            stopBaleghVoice()
-            return
-        }
-        startBaleghVoice()
-    }
-
-    fun stopBaleghVoice() {
-        speechProvider.stopListening()
-        _baleghListening.value = false
-    }
-
-    private fun startBaleghVoice() {
-        if (!speechProvider.isAvailable() || _baleghListening.value) return
-        _baleghListening.value = true
-        speechProvider.startListening(
-            onResult = { text ->
-                _baleghListening.value = false
-                sendMessageToBalegh(text, InputSource.VOICE)
-            },
-            onError = { error ->
-                _baleghListening.value = false
-                _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, error) }
-            }
-        )
     }
 
     fun confirmBaleghAction(proposal: BaleghActionProposal) {
@@ -125,32 +90,36 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
             _baleghUiState.value = BaleghUiState.Processing
             baleghEngine.executeAction(proposal).fold(
                 onSuccess = { message ->
-                    _baleghMessages.update { list -> list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = true) else it } + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, message) }
+                    _baleghMessages.update { list ->
+                        list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = true) else it } +
+                            BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, message)
+                    }
                     _baleghUiState.value = BaleghUiState.Idle
-                    speechProvider.speak(message)
                 },
                 onFailure = { error ->
                     val message = error.message ?: "غير معروف"
                     _baleghUiState.value = BaleghUiState.Error(message)
                     _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "فشل التنفيذ: " + message) }
-                    speechProvider.speak("فشل التنفيذ: " + message)
                 }
             )
         }
     }
 
     fun cancelBaleghAction(proposal: BaleghActionProposal) {
-        _baleghMessages.update { list -> list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = false) else it } + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "تم إلغاء الإجراء.") }
+        _baleghMessages.update { list ->
+            list.map { if (it.proposal?.id == proposal.id) it.copy(resolved = false) else it } +
+                BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "تم إلغاء الإجراء.")
+        }
         _baleghUiState.value = BaleghUiState.Idle
-        speechProvider.speak("تم إلغاء الإجراء.")
+    }
+
+    fun triggerBaleghVoice() {
+        if (!baleghEngine.getSpeechProvider().isAvailable()) {
+            _baleghMessages.update { it + BaleghChatMessage(BaleghChatMessage.Sender.SYSTEM, "التعرف الصوتي غير مفعّل في هذه النسخة. استخدم الكتابة حالياً.") }
+        }
     }
 
     fun addChatMessage(message: String, isUser: Boolean) { if (isUser) sendMessageToBalegh(message) }
-
-    override fun onCleared() {
-        speechProvider.release()
-        super.onCleared()
-    }
 
     fun insertLand(x: Land) = viewModelScope.launch { repository.insertLand(x) }
     fun deleteLand(x: Land) = viewModelScope.launch { repository.deleteLand(x) }
@@ -187,13 +156,7 @@ class FarmViewModel(application: Application) : AndroidViewModel(application) {
 }
 
 data class DashboardSummary(
-    val totalTasks: Int = 0,
-    val completedTasks: Int = 0,
-    val inProgressTasks: Int = 0,
-    val pendingTasks: Int = 0,
-    val presentWorkers: Int = 0,
-    val lowStockCount: Int = 0,
-    val activeDebtsCount: Int = 0,
-    val monthlyRevenue: Double = 0.0,
-    val monthlyExpenses: Double = 0.0
+    val totalTasks: Int = 0, val completedTasks: Int = 0, val inProgressTasks: Int = 0,
+    val pendingTasks: Int = 0, val presentWorkers: Int = 0, val lowStockCount: Int = 0,
+    val activeDebtsCount: Int = 0, val monthlyRevenue: Double = 0.0, val monthlyExpenses: Double = 0.0
 )

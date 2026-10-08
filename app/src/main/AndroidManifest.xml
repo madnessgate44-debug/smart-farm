@@ -7,11 +7,10 @@
     <application
         android:name=".FarmApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
         android:label="المزرعة الذكية"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Material3.DayNight.NoActionBar">
-        
+        android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
