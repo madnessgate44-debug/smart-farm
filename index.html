@@ -1,228 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المزرعة الذكية</title>
-    <meta name="theme-color" content="#10B981">
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Tahoma,sans-serif;background:#1E293B;color:#F8FAFC;min-height:100vh}
-        .header{background:linear-gradient(135deg,#10B981,#059669);padding:18px;text-align:center;color:#fff}
-        .header h1{font-size:22px}.header p{font-size:13px;opacity:0.9}
-        .tabs{display:flex;background:#0F172A;position:sticky;top:0;z-index:10;overflow-x:auto}
-        .tabs button{flex:1;min-width:55px;padding:12px 4px;background:none;border:none;color:#94A3B8;font-size:9px;cursor:pointer;border-bottom:3px solid transparent;font-family:inherit;white-space:nowrap}
-        .tabs button.active{color:#10B981;border-bottom-color:#10B981}
-        .tabs button span{display:block;font-size:18px;margin-bottom:2px}
-        main{padding:12px;padding-bottom:70px}
-        .card{background:#0F172A;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #1E293B}
-        .card h2{font-size:15px;margin-bottom:8px}
-        .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .grid4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .stat{background:#1E293B;border-radius:10px;padding:12px;text-align:center}
-        .stat .val{font-size:18px;font-weight:bold}.stat .lbl{font-size:10px;color:#94A3B8}
-        button{padding:10px 14px;border:none;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;color:#fff;font-family:inherit}
-        .btn-green{background:#10B981}.btn-gold{background:#F59E0B;color:#000}.btn-red{background:#EF4444}.btn-blue{background:#3B82F6}
-        .btn-block{display:block;width:100%;padding:12px;margin:6px 0}
-        .btn-sm{padding:6px 10px;font-size:11px;width:auto;display:inline-block}
-        input,select,textarea{width:100%;padding:10px;background:#1E293B;border:1px solid #334155;border-radius:8px;color:#F8FAFC;font-size:14px;margin:4px 0;font-family:inherit}
-        label{font-size:12px;color:#94A3B8;display:block;margin-top:8px}
-        .tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;max-height:150px;overflow-y:auto}
-        .tag{padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid #334155;background:#1E293B;color:#94A3B8}
-        .tag.active{background:#10B981;color:#fff}
-        .chat-msg{padding:10px 14px;border-radius:16px;margin:6px 0;max-width:85%;font-size:13px;line-height:1.5}
-        .chat-user{background:#10B981;color:#fff;margin-right:auto;border-bottom-left-radius:4px}
-        .chat-bot{background:#1E293B;border:1px solid #334155;margin-left:auto;border-bottom-right-radius:4px}
-        .progress{height:8px;background:#1E293B;border-radius:4px;margin:6px 0;overflow:hidden}
-        .progress div{height:100%;background:#10B981;border-radius:4px}
-        .hidden{display:none!important}
-        .fab{position:fixed;bottom:20px;right:16px;width:52px;height:52px;border-radius:50%;background:#10B981;border:none;color:#fff;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(16,185,129,0.4);z-index:100}
-        .modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
-        .modal>div{background:#0F172A;border-radius:16px;padding:20px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto}
-        .empty{text-align:center;padding:30px;color:#94A3B8}
-    </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071018"><meta name="description" content="Smart Farm — إدارة المزرعة وبليغ">
+<title>المزرعة الذكية — بليغ</title>
+<style>
+:root{--bg:#071018;--panel:#0d1720;--panel2:#111f2a;--line:#20313d;--text:#edf7f4;--muted:#8da2ad;--green:#18c89b;--cyan:#37c9d6;--amber:#f5b544;--red:#ef6262;--blue:#6198ff;--r:18px}
+*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(circle at 50% -10%,#12302e 0,#071018 42%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}
+.app{max-width:720px;margin:auto;min-height:100vh;padding-bottom:90px}.top{padding:20px 16px 14px;position:sticky;top:0;z-index:20;background:rgba(7,16,24,.9);backdrop-filter:blur(16px);border-bottom:1px solid #182630}
+.brand{display:flex;align-items:center;justify-content:space-between}.brand h1{font-size:21px;margin:0}.brand p{margin:4px 0 0;color:var(--muted);font-size:12px}.status{font-size:11px;color:#8df0ce;border:1px solid #1b6d5b;background:#0c2925;border-radius:99px;padding:6px 9px}
+.nav{display:flex;gap:7px;overflow:auto;padding:10px 16px;background:rgba(7,16,24,.92);position:sticky;top:82px;z-index:19}.nav button{flex:0 0 auto;background:#0d1720;border:1px solid var(--line);color:var(--muted);border-radius:12px;padding:9px 12px;font-size:12px}.nav button.active{background:#123c36;color:#dffff5;border-color:#1c8f73}
+main{padding:14px 16px}.hero{padding:20px;border:1px solid #1b3a39;border-radius:24px;background:linear-gradient(145deg,#0e2826,#0b151d);margin-bottom:12px}.eyebrow{font-size:11px;color:var(--green);letter-spacing:.08em}.hero h2{font-size:25px;margin:8px 0}.hero p{color:#a9bdc4;line-height:1.7;margin:0}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.card{background:linear-gradient(160deg,#0d1821,#0a141c);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:10px}.card h3{margin:0 0 10px;font-size:14px}.stat{background:#0d1b24;border:1px solid #1b2c37;border-radius:14px;padding:12px}.stat b{display:block;font-size:20px}.stat span{font-size:10px;color:var(--muted)}.green{color:var(--green)}.amber{color:var(--amber)}.red{color:var(--red)}.blue{color:var(--blue)}.muted{color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.stack>*{margin-bottom:8px}.btn{border:0;border-radius:12px;padding:11px 14px;color:white;background:#17302f}.btn.primary{background:linear-gradient(135deg,#18c89b,#0d9e80)}.btn.secondary{background:#162631;border:1px solid var(--line)}.btn.warn{background:#4b3915;color:#ffd77b}.btn.danger{background:#431f24}.btn.full{width:100%}.btn:disabled{opacity:.45;cursor:not-allowed}
+input,textarea,select{width:100%;background:#0b151d;border:1px solid #263945;color:var(--text);border-radius:12px;padding:12px;outline:none}textarea{min-height:90px;resize:vertical}label{font-size:11px;color:var(--muted);display:block;margin:8px 0 5px}
+.progress{height:7px;background:#182630;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:99px}
+.chat{min-height:52vh;display:flex;flex-direction:column;gap:9px}.msg{max-width:88%;padding:12px 14px;border-radius:17px;line-height:1.65;font-size:13px;white-space:pre-wrap}.msg.bot{align-self:flex-start;background:#101e27;border:1px solid var(--line);border-bottom-right-radius:5px}.msg.user{align-self:flex-end;background:#117e69;border-bottom-left-radius:5px}.composer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(720px,100%);padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(7,16,24,.96);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;gap:7px;z-index:30}.mic{width:48px;height:48px;border-radius:50%;background:#172a33;border:1px solid #2b4652;color:white;font-size:20px}.mic.live{background:#6b252c;border-color:#df5962;animation:pulse 1.1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 8px #6b252c33}}
+.list{display:flex;flex-direction:column;gap:8px}.item{background:#0c1720;border:1px solid #1b2d38;border-radius:14px;padding:12px}.badge{font-size:10px;padding:5px 8px;border-radius:99px;background:#15252d;color:#a9bdc4}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.empty{text-align:center;padding:30px 10px;color:var(--muted)}.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100;background:#102d29;border:1px solid #267f6b;padding:10px 14px;border-radius:12px;font-size:12px;display:none}.toast.show{display:block}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:flex-end;justify-content:center;z-index:50}.modal.open{display:flex}.sheet{width:min(720px,100%);background:#0c1720;border:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px;max-height:88vh;overflow:auto}
+@media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(4,1fr)}.modal{align-items:center}.sheet{border-radius:22px}}
+</style>
 </head>
 <body>
-<div class="header"><h1>🌾 المزرعة الذكية</h1><p>للأستاذ أحمد باشا</p></div>
-<div class="tabs" id="tabs">
-    <button class="active" data-tab="home"><span>🏠</span>الرئيسية</button>
-    <button data-tab="chat"><span>💬</span>بليغ</button>
-    <button data-tab="tasks"><span>📋</span>المهام</button>
-    <button data-tab="tables"><span>📊</span>الجداول</button>
-    <button data-tab="finance"><span>💰</span>المالية</button>
-    <button data-tab="workers"><span>👷</span>العمال</button>
-    <button data-tab="inventory"><span>📦</span>المخازن</button>
-</div>
+<div id="toast" class="toast"></div>
+<div class="app">
+<header class="top"><div class="brand"><div><h1>🌾 المزرعة الذكية</h1><p>مركز تشغيل المزرعة · بليغ</p></div><div class="status">● محلي ويعمل</div></div></header>
+<nav id="nav" class="nav">
+<button data-page="home">الرئيسية</button><button data-page="balegh">بليغ</button><button data-page="tasks">المهام</button><button data-page="inventory">المخزن</button><button data-page="finance">المالية</button><button data-page="workers">العمال</button><button data-page="data">البيانات</button>
+</nav>
 <main id="main"></main>
-<button class="fab hidden" id="fab" onclick="openAdd()">+</button>
-<div class="modal hidden" id="modal"><div id="modalBox"></div></div>
-
+</div>
+<div id="composer" class="composer" hidden><button id="mic" class="mic" title="تحدث مع بليغ">🎙️</button><input id="chatInput" placeholder="قل لبليغ ما حدث أو اكتب هنا..." autocomplete="off"><button id="send" class="btn primary">إرسال</button></div>
+<div id="modal" class="modal"><div class="sheet" id="sheet"></div></div>
 <script>
-var D={lands:[],crops:[],tasks:[],workers:[],purchases:[],sales:[],treasury:[],inventory_items:[],animals:[],equipment:[]};
-var page='home',tbl='lands';
-var chat=[{text:'الأستاذ أحمد يا باشا، مرحب بيك! 🌾\nالنظام شغال وجاهز.\nقولي إيه اللي حصل النهارده في المزرعة؟',user:false}];
-
-(function(){
-    var ks=Object.keys(D);
-    for(var i=0;i<ks.length;i++){var k=ks[i];var d=localStorage.getItem('sf_'+k);if(d)try{D[k]=JSON.parse(d)}catch(e){}}
-    document.getElementById('tabs').onclick=function(e){var b=e.target.closest('button');if(b)go(b.dataset.tab)};
-    go('home');
-})();
-
-function save(k){localStorage.setItem('sf_'+k,JSON.stringify(D[k]))}
-
-function go(p){
-    page=p;
-    var bs=document.querySelectorAll('#tabs button');for(var i=0;i<bs.length;i++)bs[i].classList.remove('active');
-    var a=document.querySelector('[data-tab="'+p+'"]');if(a)a.classList.add('active');
-    var m=document.getElementById('main'),f=document.getElementById('fab');f.classList.add('hidden');
-    if(p==='home')m.innerHTML=homePage();
-    else if(p==='chat')m.innerHTML=chatPage();
-    else if(p==='tasks'){m.innerHTML=tasksPage();f.classList.remove('hidden')}
-    else if(p==='tables'){m.innerHTML=tablesPage();f.classList.remove('hidden')}
-    else if(p==='finance')m.innerHTML=financePage();
-    else if(p==='workers'){m.innerHTML=workersPage();f.classList.remove('hidden')}
-    else if(p==='inventory'){m.innerHTML=invPage();f.classList.remove('hidden')}
+const KEY='smartfarm_web_v2';
+const state=JSON.parse(localStorage.getItem(KEY)||'null')||{tasks:[],workers:[],inventory:[],finance:[],messages:[{role:'bot',text:'أنا بليغ. أقدر أساعدك في فهم حالة المزرعة، استخراج المهام، ومراجعة المخزن والمالية.\n\nمثال: «اعمل مهمة لمحمد يسقي القمح بكرة». قبل أي تغيير مهم سأطلب تأكيدك.'}]};
+let page='home', listening=false, recognition=null;
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>Number(n||0).toLocaleString('ar-EG')+' ج';
+const toast=t=>{let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)};
+function go(p){page=p;document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===p));document.getElementById('composer').hidden=p!=='balegh';render();}
+document.getElementById('nav').onclick=e=>{let b=e.target.closest('button');if(b)go(b.dataset.page)};
+function render(){let m=document.getElementById('main');m.innerHTML=page==='home'?home():page==='balegh'?balegh():page==='tasks'?tasks():page==='inventory'?inventory():page==='finance'?finance():page==='workers'?workers():dataPage();if(page==='balegh')setTimeout(()=>document.getElementById('chatInput')?.focus(),50)}
+function home(){
+ const open=state.tasks.filter(x=>x.status!=='مكتملة').length, done=state.tasks.filter(x=>x.status==='مكتملة').length;
+ const low=state.inventory.filter(x=>Number(x.qty)<=Number(x.min||0)).length;
+ const income=state.finance.filter(x=>x.type==='دخل').reduce((a,x)=>a+Number(x.amount),0),out=state.finance.filter(x=>x.type==='مصروف').reduce((a,x)=>a+Number(x.amount),0);
+ return '<section class="hero"><div class="eyebrow">FARM OPERATING CENTER</div><h2>ما الذي يحدث في المزرعة الآن؟</h2><p>بليغ يربط كلامك بالمهام والمخزن والمالية، ويطلب تأكيدك قبل تنفيذ أي تغيير مهم.</p><div class="actions"><button class="btn primary" onclick="go(\'balegh\')">تحدث مع بليغ</button><button class="btn secondary" onclick="quickTask()">+ مهمة سريعة</button></div></section>'+
+ '<div class="grid4"><div class="stat"><b>'+open+'</b><span>مهام مفتوحة</span></div><div class="stat"><b class="green">'+done+'</b><span>مكتملة</span></div><div class="stat"><b class="'+(low?'amber':'green')+'">'+low+'</b><span>مخزون منخفض</span></div><div class="stat"><b>'+state.workers.length+'</b><span>عمال</span></div></div>'+
+ '<div class="grid" style="margin-top:10px"><div class="card"><h3>⚠️ يحتاج انتباه</h3>'+(low?'<p class="amber">هناك '+low+' صنف تحت الحد الأدنى.</p>':'<p class="green">لا توجد تنبيهات مخزون.</p>')+'<p class="muted">المهام المفتوحة: '+open+'</p></div><div class="card"><h3>💰 الوضع المالي</h3><p class="green">دخل '+money(income)+'</p><p class="red">مصروف '+money(out)+'</p><p><b>الصافي '+money(income-out)+'</b></p></div></div>'+
+ '<div class="card"><div class="row"><h3>آخر المهام</h3><button class="btn secondary" onclick="go(\'tasks\')">عرض الكل</button></div>'+taskItems(state.tasks.slice(-3).reverse())+'</div>';
 }
-
-function homePage(){
-    var r=0;for(var i=0;i<D.sales.length;i++)r+=Number(D.sales[i].totalRevenue||0);
-    var e=0;for(var i=0;i<D.purchases.length;i++)e+=Number(D.purchases[i].totalCost||0);
-    var c=0;for(var i=0;i<D.tasks.length;i++){if(D.tasks[i].status==='مكتمل')c++}
-    return '<div class="card"><h2>📊 الإحصائيات</h2><div class="grid4">'+
-        '<div class="stat"><div class="val" style="color:#3B82F6">'+D.tasks.length+'</div><div class="lbl">المهام</div></div>'+
-        '<div class="stat"><div class="val" style="color:#10B981">'+c+'</div><div class="lbl">مكتملة</div></div>'+
-        '<div class="stat"><div class="val" style="color:#F59E0B">'+D.workers.length+'</div><div class="lbl">عمال</div></div>'+
-        '<div class="stat"><div class="val" style="color:#8B5CF6">'+D.lands.length+'</div><div class="lbl">أراضي</div></div>'+
-        '</div></div>'+
-        '<div class="card"><h2>💰 المالية</h2><div class="grid2">'+
-        '<div class="stat"><div class="val" style="color:#10B981">'+r.toLocaleString()+'</div><div class="lbl">إيرادات</div></div>'+
-        '<div class="stat"><div class="val" style="color:#EF4444">'+e.toLocaleString()+'</div><div class="lbl">مصروفات</div></div>'+
-        '</div><div class="stat" style="margin-top:8px"><div class="val" style="font-size:22px;color:'+((r-e)>=0?'#10B981':'#EF4444')+'">'+(r-e).toLocaleString()+' ج</div><div class="lbl">الصافي</div></div></div>';
+function balegh(){return '<div class="card"><div class="row"><div><div class="eyebrow">BALEGH</div><h3 style="font-size:20px">مساعد تشغيل المزرعة</h3></div><span class="badge">تحليل محلي</span></div><p class="muted">قل ما حدث بصوتك أو اكتب. بليغ يستخرج الأشخاص والمهام والأرقام ويعرض الإجراء المقترح قبل التنفيذ.</p></div><div id="chat" class="chat">'+state.messages.map(x=>'<div class="msg '+x.role+'">'+esc(x.text)+'</div>').join('')+'</div>'}
+function taskItems(a){if(!a.length)return '<div class="empty">لا توجد مهام بعد.</div>';return '<div class="list">'+a.map((t,i)=>'<div class="item"><div class="row"><b>'+esc(t.title)+'</b><span class="badge">'+esc(t.status)+'</span></div><p class="muted">'+esc(t.assignee||'غير مسند')+(t.due?' · '+esc(t.due):'')+'</p><div class="progress"><i style="width:'+Number(t.progress||0)+'%"></i></div><div class="actions"><button class="btn secondary" onclick="toggleTask(\''+esc(t.id)+'\')">'+(t.status==='مكتملة'?'إعادة فتح':'إكمال')+'</button><button class="btn danger" onclick="removeTask(\''+esc(t.id)+'\')">حذف</button></div></div>').join('')+'</div>'}
+function tasks(){return '<div class="row"><div><div class="eyebrow">WORK QUEUE</div><h2>المهام</h2></div><button class="btn primary" onclick="quickTask()">+ إضافة</button></div><div class="grid" style="margin:12px 0"><div class="stat"><b>'+state.tasks.length+'</b><span>إجمالي</span></div><div class="stat"><b class="amber">'+state.tasks.filter(x=>x.status!=='مكتملة').length+'</b><span>مفتوحة</span></div><div class="stat"><b class="green">'+state.tasks.filter(x=>x.status==='مكتملة').length+'</b><span>مكتملة</span></div></div><div class="card">'+taskItems([...state.tasks].reverse())+'</div>'}
+function inventory(){return '<div class="row"><div><div class="eyebrow">STOCK CONTROL</div><h2>المخزن</h2></div><button class="btn primary" onclick="addInventory()">+ صنف</button></div><div class="card"><div class="list">'+(state.inventory.length?state.inventory.map((x,i)=>'<div class="item"><div class="row"><b>'+esc(x.name)+'</b><span class="badge">'+esc(x.unit||'وحدة')+'</span></div><p><b class="'+(Number(x.qty)<=Number(x.min||0)?'amber':'green')+'">'+esc(x.qty)+'</b> · حد أدنى '+esc(x.min||0)+'</p><div class="actions"><button class="btn danger" onclick="state.inventory.splice('+i+',1);save();render()">حذف</button></div></div>').join(''):'<div class="empty">المخزن فارغ.</div>')+'</div></div>'}
+function finance(){let inc=state.finance.filter(x=>x.type==='دخل').reduce((a,x)=>a+Number(x.amount),0),out=state.finance.filter(x=>x.type==='مصروف').reduce((a,x)=>a+Number(x.amount),0);return '<div class="row"><div><div class="eyebrow">CASHFLOW</div><h2>المالية</h2></div><button class="btn primary" onclick="addFinance()">+ حركة</button></div><div class="grid" style="margin:12px 0"><div class="stat"><b class="green">'+money(inc)+'</b><span>دخل</span></div><div class="stat"><b class="red">'+money(out)+'</b><span>مصروف</span></div><div class="stat"><b>'+money(inc-out)+'</b><span>الصافي</span></div></div><div class="card">'+(state.finance.length?'<div class="list">'+[...state.finance].reverse().map((x,i)=>'<div class="item"><div class="row"><b>'+esc(x.note)+'</b><span class="'+(x.type==='دخل'?'green':'red')+'">'+(x.type==='دخل'?'+':'-')+money(x.amount)+'</span></div></div>').join('')+'</div>':'<div class="empty">لا توجد حركات مالية.</div>')+'</div>'}
+function workers(){return '<div class="row"><div><div class="eyebrow">PEOPLE</div><h2>العمال</h2></div><button class="btn primary" onclick="addWorker()">+ عامل</button></div><div class="card">'+(state.workers.length?'<div class="list">'+state.workers.map((w,i)=>'<div class="item"><div class="row"><b>'+esc(w.name)+'</b><span class="badge">'+esc(w.job||'عامل')+'</span></div><p class="muted">'+esc(w.phone||'بدون رقم')+'</p></div>').join('')+'</div>':'<div class="empty">لا يوجد عمال مسجلون.</div>')+'</div>'}
+function dataPage(){return '<div class="hero"><div class="eyebrow">LOCAL DATA</div><h2>بيانات التطبيق</h2><p>هذه نسخة ويب محلية. البيانات تحفظ على هذا الجهاز فقط حالياً.</p><div class="actions"><button class="btn secondary" onclick="exportData()">تصدير JSON</button><button class="btn danger" onclick="resetData()">مسح بيانات الويب</button></div></div><div class="grid">'+Object.entries({tasks:'مهام',workers:'عمال',inventory:'أصناف',finance:'حركات مالية',messages:'رسائل'}).map(([k,v])=>'<div class="stat"><b>'+state[k].length+'</b><span>'+v+'</span></div>').join('')+'</div>'}
+function openSheet(html){document.getElementById('sheet').innerHTML=html;document.getElementById('modal').classList.add('open')}
+document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')document.getElementById('modal').classList.remove('open')};
+function quickTask(){openSheet('<h3>مهمة جديدة</h3><label>المهمة</label><input id="f1" placeholder="مثال: ري القمح"><label>العامل</label><input id="f2" placeholder="اختياري"><label>الموعد</label><input id="f3" type="date"><button class="btn primary full" style="margin-top:12px" onclick="createTask()">حفظ المهمة</button>')}
+function createTask(){let title=document.getElementById('f1').value.trim();if(!title)return toast('اكتب اسم المهمة');state.tasks.push({id:Date.now().toString(),title,assignee:document.getElementById('f2').value.trim(),due:document.getElementById('f3').value,status:'مفتوحة',progress:0});save();document.getElementById('modal').classList.remove('open');toast('تم إنشاء المهمة');render()}
+function toggleTask(id){let t=state.tasks.find(x=>x.id===id);if(t){t.status=t.status==='مكتملة'?'مفتوحة':'مكتملة';t.progress=t.status==='مكتملة'?100:0;save();render()}}
+function removeTask(id){state.tasks=state.tasks.filter(x=>x.id!==id);save();render()}
+function addInventory(){openSheet('<h3>إضافة صنف للمخزن</h3><label>الصنف</label><input id="i1"><label>الكمية</label><input id="i2" type="number"><label>الوحدة</label><input id="i3" value="كجم"><label>الحد الأدنى</label><input id="i4" type="number" value="0"><button class="btn primary full" style="margin-top:12px" onclick="createInventory()">حفظ</button>')}
+function createInventory(){let n=document.getElementById('i1').value.trim();if(!n)return toast('اكتب اسم الصنف');state.inventory.push({name:n,qty:Number(document.getElementById('i2').value||0),unit:document.getElementById('i3').value,min:Number(document.getElementById('i4').value||0)});save();document.getElementById('modal').classList.remove('open');render()}
+function addWorker(){openSheet('<h3>إضافة عامل</h3><label>الاسم</label><input id="w1"><label>الوظيفة</label><input id="w2"><label>الهاتف</label><input id="w3"><button class="btn primary full" style="margin-top:12px" onclick="createWorker()">حفظ</button>')}
+function createWorker(){let n=document.getElementById('w1').value.trim();if(!n)return toast('اكتب اسم العامل');state.workers.push({name:n,job:document.getElementById('w2').value,phone:document.getElementById('w3').value});save();document.getElementById('modal').classList.remove('open');render()}
+function addFinance(){openSheet('<h3>حركة مالية</h3><label>النوع</label><select id="m1"><option>مصروف</option><option>دخل</option></select><label>المبلغ</label><input id="m2" type="number"><label>الوصف</label><input id="m3"><button class="btn primary full" style="margin-top:12px" onclick="createFinance()">حفظ</button>')}
+function createFinance(){let a=Number(document.getElementById('m2').value);if(!a)return toast('اكتب المبلغ');state.finance.push({type:document.getElementById('m1').value,amount:a,note:document.getElementById('m3').value||'حركة مالية'});save();document.getElementById('modal').classList.remove('open');render()}
+function exportData(){let blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='smart-farm-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function resetData(){if(confirm('سيتم حذف بيانات نسخة الويب فقط. هل أنت متأكد؟')){localStorage.removeItem(KEY);location.reload()}}
+function analyse(text){
+ let t=text.toLowerCase(), actions=[], reply='فهمت كلامك. ';
+ if(/مهم|اعمل|سجل|كلف/.test(t)){let clean=text.replace(/اعمل|سجل|مهمة|مهم|كلف|لـ|ل/g,' ').trim();actions.push({type:'task',title:clean||'مهمة جديدة'});reply+='أقدر أحول الكلام إلى مهمة، لكن لن أنفذها بدون تأكيدك.'}
+ else if(/مخزن|مخزون|سماد|علف|رصيد/.test(t)){let low=state.inventory.filter(x=>Number(x.qty)<=Number(x.min||0));reply=low.length?'حالياً عندك '+low.length+' أصناف عند أو تحت الحد الأدنى: '+low.map(x=>x.name).join('، ')+'.':'المخزن لا يحتوي حالياً على أصناف تحت الحد الأدنى.'}
+ else if(/فلوس|مالية|مصاريف|مصروف|مبيعات|دخل|ربح/.test(t)){let inc=state.finance.filter(x=>x.type==='دخل').reduce((a,x)=>a+Number(x.amount),0),out=state.finance.filter(x=>x.type==='مصروف').reduce((a,x)=>a+Number(x.amount),0);reply+='الصافي المسجل حالياً '+money(inc-out)+'.'}
+ else if(/عامل|عمال|محمد|احمد|أحمد/.test(t)){reply+='سأربط العامل ببيانات العمال المسجلة عندما تكون متاحة، ولن أخمن هوية شخص غير موجود.'}
+ else reply+='أستطيع تحويل طلبك إلى مهمة أو مساعدتك في قراءة المخزن والمالية. جرّب: «اعمل مهمة لمحمد يسقي القمح بكرة».';
+ return {reply,actions};
 }
-
-function chatPage(){
-    var h='';for(var i=0;i<chat.length;i++)h+='<div class="chat-msg '+(chat[i].user?'chat-user':'chat-bot')+'">'+chat[i].text.replace(/\n/g,'<br>')+'</div>';
-    return '<div style="height:calc(100vh - 200px);display:flex;flex-direction:column"><div style="flex:1;overflow-y:auto;padding:8px">'+h+'</div>'+
-        '<div style="display:flex;gap:8px;padding:10px;background:#0F172A;border-radius:12px">'+
-        '<button onclick="alert(\'🎤 جاري التسجيل...\')" style="background:#F59E0B;border:none;border-radius:50%;width:40px;height:40px;font-size:18px">🎤</button>'+
-        '<input id="ci" placeholder="اكتب رسالة..." style="flex:1" onkeypress="if(event.key===\'Enter\')sendChat()">'+
-        '<button onclick="sendChat()" style="background:#10B981;border:none;border-radius:8px;padding:8px 16px;color:#fff">إرسال</button></div></div>';
+function sendChat(){let input=document.getElementById('chatInput'),text=input.value.trim();if(!text)return;state.messages.push({role:'user',text});let r=analyse(text);state.messages.push({role:'bot',text:r.reply});if(r.actions.length){state.messages.push({role:'bot',text:'إجراء مقترح:\n• '+r.actions[0].title+'\n\nهل تريد إنشاء هذه المهمة؟',pending:JSON.stringify(r.actions[0])});}save();input.value='';render()}
+document.getElementById('send').onclick=sendChat;document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+function startMic(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){toast('التحدث الصوتي غير مدعوم في هذا المتصفح. جرّب Chrome.');return}
+ if(listening){recognition.stop();return}
+ recognition=new SR();recognition.lang='ar-EG';recognition.interimResults=false;recognition.continuous=false;
+ recognition.onstart=()=>{listening=true;document.getElementById('mic').classList.add('live');toast('بليغ يستمع الآن...')};
+ recognition.onresult=e=>{let text=e.results[0][0].transcript;document.getElementById('chatInput').value=text;sendChat()};
+ recognition.onerror=e=>{toast(e.error==='not-allowed'?'اسمح للمتصفح باستخدام الميكروفون.':'تعذر التقاط الصوت: '+e.error)};
+ recognition.onend=()=>{listening=false;document.getElementById('mic')?.classList.remove('live')};
+ recognition.start();
 }
-
-function sendChat(){
-    var i=document.getElementById('ci');if(!i||!i.value.trim())return;
-    chat.push({text:i.value,user:true});i.value='';
-    setTimeout(function(){chat.push({text:'تمام يا باشا، تم ✓',user:false});go('chat')},800);
-    go('chat');
-}
-
-function tasksPage(){
-    var h='<div class="grid4">'+
-        '<div class="stat"><div class="val">'+D.tasks.length+'</div><div class="lbl">إجمالي</div></div>'+
-        '<div class="stat"><div class="val">'+D.tasks.filter(function(t){return t.status==='مكتمل'}).length+'</div><div class="lbl">✅ مكتملة</div></div>'+
-        '<div class="stat"><div class="val">'+D.tasks.filter(function(t){return t.status==='جاري العمل'}).length+'</div><div class="lbl">⚡ جاري</div></div>'+
-        '<div class="stat"><div class="val">'+D.tasks.filter(function(t){return t.status==='قيد الانتظار'}).length+'</div><div class="lbl">⏳ انتظار</div></div></div>';
-    for(var i=0;i<D.tasks.length;i++){
-        var t=D.tasks[i];
-        h+='<div class="card"><div style="display:flex;justify-content:space-between"><strong>'+t.taskName+'</strong>'+
-            '<span style="color:'+(t.status==='مكتمل'?'#10B981':t.status==='جاري العمل'?'#F59E0B':'#94A3B8')+'">'+t.status+'</span></div>'+
-            '<div style="font-size:11px;color:#94A3B8;margin:4px 0">👷 '+(t.workerName||'---')+' • 🌾 '+(t.cropName||'---')+'</div>'+
-            '<div class="progress"><div style="width:'+(t.progress||0)+'%"></div></div>'+
-            '<div style="display:flex;gap:6px;margin-top:8px">'+
-            '<button class="btn-sm btn-blue" onclick="updTask('+i+')">تحديث</button>'+
-            '<button class="btn-sm btn-green" onclick="doneTask('+i+')">إكمال</button>'+
-            '<button class="btn-sm btn-red" onclick="delTask('+i+')">🗑️</button></div></div>';
-    }
-    if(D.tasks.length===0)h+='<div class="card"><div class="empty"><p>لا توجد مهام</p></div></div>';
-    return h;
-}
-
-function updTask(i){
-    var t=D.tasks[i];
-    document.getElementById('modalBox').innerHTML='<h3>'+t.taskName+'</h3>'+
-        '<label>التقدم</label><input type="range" id="ps" min="0" max="100" value="'+(t.progress||0)+'" oninput="document.getElementById(\'pv\').textContent=this.value+\'%\'">'+
-        '<p style="text-align:center;font-size:18px" id="pv">'+(t.progress||0)+'%</p>'+
-        '<div class="tags">'+['قيد الانتظار','جاري العمل','مكتمل'].map(function(s){return'<span class="tag'+(t.status===s?' active':'')+'" onclick="D.tasks['+i+'].status=\''+s+'\';updTask('+i+')">'+s+'</span>'}).join('')+'</div>'+
-        '<button class="btn btn-green btn-block" onclick="D.tasks['+i+'].progress=parseInt(document.getElementById(\'ps\').value);save(\'tasks\');closeModal();go(\'tasks\')">حفظ</button>';
-    document.getElementById('modal').classList.remove('hidden');
-}
-
-function doneTask(i){D.tasks[i].status='مكتمل';D.tasks[i].progress=100;save('tasks');go('tasks')}
-function delTask(i){if(confirm('حذف؟')){D.tasks.splice(i,1);save('tasks');go('tasks')}}
-
-function tablesPage(){
-    var ts=['lands','crops','workers','purchases','sales','treasury','inventory_items','animals','equipment'];
-    var ls={lands:'أراضي',crops:'محاصيل',workers:'عمال',purchases:'مشتريات',sales:'مبيعات',treasury:'خزينة',inventory_items:'مخازن',animals:'حيوانات',equipment:'معدات'};
-    var h='<div class="tags">';for(var i=0;i<ts.length;i++)h+='<span class="tag'+(tbl===ts[i]?' active':'')+'" onclick="tbl=\''+ts[i]+'\';go(\'tables\')">'+ls[ts[i]]+'</span>';h+='</div>';
-    var d=D[tbl]||[];
-    if(d.length===0)h+='<div class="card"><div class="empty"><p>لا توجد بيانات</p></div></div>';
-    else for(var j=0;j<d.length;j++){var it=d[j],ks=Object.keys(it).slice(0,5);h+='<div class="card"><div style="display:flex;justify-content:space-between"><div>';for(var k=0;k<ks.length;k++)h+='<div style="font-size:12px;margin:2px 0"><span style="color:#94A3B8">'+ks[k]+':</span> '+it[ks[k]]+'</div>';h+='</div><button class="btn-sm btn-red" onclick="delRow(\''+tbl+'\','+j+')">🗑️</button></div></div>'}
-    return h;
-}
-
-function delRow(t,i){if(confirm('حذف؟')){D[t].splice(i,1);save(t);go('tables')}}
-
-function financePage(){
-    var r=0;for(var i=0;i<D.sales.length;i++)r+=Number(D.sales[i].totalRevenue||0);
-    var e=0;for(var i=0;i<D.purchases.length;i++)e+=Number(D.purchases[i].totalCost||0);
-    return '<div class="grid2">'+
-        '<div class="stat"><div class="val" style="color:#10B981">'+r.toLocaleString()+'</div><div class="lbl">المبيعات</div></div>'+
-        '<div class="stat"><div class="val" style="color:#EF4444">'+e.toLocaleString()+'</div><div class="lbl">المشتريات</div></div></div>'+
-        '<div class="card"><h2>📈 صافي الربح</h2><div class="stat"><div class="val" style="font-size:26px;color:'+((r-e)>=0?'#10B981':'#EF4444')+'">'+(r-e).toLocaleString()+' ج</div></div></div>';
-}
-
-function workersPage(){
-    var h='<div class="stat" style="margin-bottom:8px"><div class="val">'+D.workers.length+'</div><div class="lbl">عمال</div></div>';
-    for(var i=0;i<D.workers.length;i++){var w=D.workers[i];h+='<div class="card"><div><strong>'+w.name+'</strong><div style="font-size:11px;color:#94A3B8">'+w.job+' • '+w.dailyRate+' ج/يوم</div></div></div>'}
-    if(D.workers.length===0)h+='<div class="card"><div class="empty"><p>لا يوجد عمال</p></div></div>';
-    return h;
-}
-
-function invPage(){
-    var h='';
-    for(var i=0;i<D.inventory_items.length;i++){var it=D.inventory_items[i];h+='<div class="card"><div><strong>'+it.name+'</strong><div style="font-size:11px;color:#94A3B8">'+it.currentBalance+' '+it.unit+'</div></div></div>'}
-    if(D.inventory_items.length===0)h='<div class="card"><div class="empty"><p>المخزن فارغ</p></div></div>';
-    return h;
-}
-
-function openAdd(){
-    if(page==='tasks'){
-        document.getElementById('modalBox').innerHTML='<h3>إضافة مهمة</h3><label>العنوان</label><input id="a1"><label>العامل</label><input id="a2"><label>المحصول</label><input id="a3"><button class="btn btn-green btn-block" onclick="addTask()">حفظ</button>';
-    }else if(page==='tables'){
-        var fs={lands:'code,name,area',crops:'code,crop,season',workers:'code,name,job',purchases:'item,quantity,totalCost',sales:'item,quantity,totalRevenue',treasury:'amount,description',inventory_items:'name,currentBalance,unit',animals:'code,type,breed',equipment:'code,name,status'};
-        var f=(fs[tbl]||'name').split(',');
-        document.getElementById('modalBox').innerHTML='<h3>إضافة</h3>'+f.map(function(x){return'<label>'+x+'</label><input id="a_'+x+'">'}).join('')+'<button class="btn btn-green btn-block" onclick="addRow()">حفظ</button>';
-    }else if(page==='workers'){
-        document.getElementById('modalBox').innerHTML='<h3>إضافة عامل</h3><label>الاسم</label><input id="a1"><label>الوظيفة</label><input id="a2"><label>الأجر</label><input id="a3"><button class="btn btn-green btn-block" onclick="addWorker()">حفظ</button>';
-    }else if(page==='inventory'){
-        document.getElementById('modalBox').innerHTML='<h3>إضافة للمخزن</h3><label>الاسم</label><input id="a1"><label>الكمية</label><input id="a2"><label>الوحدة</label><input id="a3" value="كجم"><button class="btn btn-green btn-block" onclick="addInv()">حفظ</button>';
-    }
-    document.getElementById('modal').classList.remove('hidden');
-}
-
-function addTask(){
-    D.tasks.push({taskName:document.getElementById('a1')?.value||'مهمة',workerName:document.getElementById('a2')?.value||'',cropName:document.getElementById('a3')?.value||'',status:'قيد الانتظار',progress:0,date:new Date().toISOString().split('T')[0]});
-    save('tasks');closeModal();go('tasks');
-}
-
-function addRow(){
-    var it={},inp=document.querySelectorAll('#modalBox input');for(var i=0;i<inp.length;i++){var id=inp[i].id.replace('a_','');if(id)it[id]=inp[i].value}
-    it.date=new Date().toISOString().split('T')[0];D[tbl].push(it);save(tbl);closeModal();go('tables');
-}
-
-function addWorker(){
-    D.workers.push({name:document.getElementById('a1')?.value||'',job:document.getElementById('a2')?.value||'',dailyRate:document.getElementById('a3')?.value||'0',status:'نشط'});
-    save('workers');closeModal();go('workers');
-}
-
-function addInv(){
-    D.inventory_items.push({name:document.getElementById('a1')?.value||'',currentBalance:document.getElementById('a2')?.value||'0',unit:document.getElementById('a3')?.value||'كجم'});
-    save('inventory_items');closeModal();go('inventory');
-}
-
-function closeModal(){document.getElementById('modal').classList.add('hidden')}
-document.getElementById('modal').onclick=function(e){if(e.target===this)closeModal()};
+document.getElementById('mic').onclick=startMic;
+go('home');
 </script>
-</body>
-</html>
+</body></html>
