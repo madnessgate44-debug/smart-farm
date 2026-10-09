@@ -118,12 +118,20 @@ class BaleghEngine(
         val amount = analysis.entities.firstOrNull { it.type == EntityType.AMOUNT }
         if (item == null || amount == null) return ResultText("لتسجيل الشراء أحتاج اسم الصنف وقيمته.")
         val quantity = analysis.entities.firstOrNull { it.type == EntityType.QUANTITY }?.normalizedValue ?: "1"
+        val date = analysis.entities.firstOrNull { it.type == EntityType.DATE || it.type == EntityType.DEADLINE }?.normalizedValue
+        val parameters = mutableMapOf(
+            "item" to item.rawValue,
+            "totalCost" to amount.normalizedValue,
+            "quantity" to quantity,
+            "paid" to "0"
+        )
+        if (!date.isNullOrBlank()) parameters["date"] = date
         return ResultText(
-            "سأضيف عملية الشراء بهذه البيانات. راجعها ثم أكد التنفيذ.",
+            "راجع بيانات الشراء وأكدها. لأن مبلغ السداد لم يتحدد، سيتم تسجيل المسدد بصفر ولن أفترض أن الشراء دُفع نقداً.",
             BaleghActionProposal(
                 actionType = BaleghActionType.CREATE_PURCHASE,
-                description = "شراء " + item.rawValue + " بقيمة " + amount.normalizedValue + " جنيه، كمية " + quantity,
-                parameters = mapOf("item" to item.rawValue, "totalCost" to amount.normalizedValue, "quantity" to quantity),
+                description = "شراء " + item.rawValue + " بإجمالي " + amount.normalizedValue + " جنيه، كمية " + quantity + (date?.let { "، التاريخ " + it } ?: "") + "، المسدد المسجل 0 جنيه حتى تحدد مبلغ السداد",
+                parameters = parameters,
                 confidence = analysis.confidence
             )
         )
@@ -134,12 +142,20 @@ class BaleghEngine(
         val amount = analysis.entities.firstOrNull { it.type == EntityType.AMOUNT }
         if (item == null || amount == null) return ResultText("لتسجيل البيع أحتاج اسم المحصول وقيمته.")
         val quantity = analysis.entities.firstOrNull { it.type == EntityType.QUANTITY }?.normalizedValue ?: "1"
+        val date = analysis.entities.firstOrNull { it.type == EntityType.DATE || it.type == EntityType.DEADLINE }?.normalizedValue
+        val parameters = mutableMapOf(
+            "item" to item.rawValue,
+            "totalRevenue" to amount.normalizedValue,
+            "quantity" to quantity,
+            "received" to "0"
+        )
+        if (!date.isNullOrBlank()) parameters["date"] = date
         return ResultText(
-            "سأضيف عملية البيع بهذه البيانات. راجعها ثم أكد التنفيذ.",
+            "راجع بيانات البيع وأكدها. لأن مبلغ المقبوض لم يتحدد، سيتم تسجيل المقبوض بصفر ولن أفترض استلام المبلغ بالكامل.",
             BaleghActionProposal(
                 actionType = BaleghActionType.CREATE_SALE,
-                description = "بيع " + item.rawValue + " بقيمة " + amount.normalizedValue + " جنيه، كمية " + quantity,
-                parameters = mapOf("item" to item.rawValue, "totalRevenue" to amount.normalizedValue, "quantity" to quantity),
+                description = "بيع " + item.rawValue + " بإجمالي " + amount.normalizedValue + " جنيه، كمية " + quantity + (date?.let { "، التاريخ " + it } ?: "") + "، المقبوض المسجل 0 جنيه حتى تحدد مبلغ المقبوض",
+                parameters = parameters,
                 confidence = analysis.confidence
             )
         )
