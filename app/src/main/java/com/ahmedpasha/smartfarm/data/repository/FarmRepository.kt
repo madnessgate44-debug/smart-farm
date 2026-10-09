@@ -60,10 +60,14 @@ class FarmRepository(private val dao: FarmDao) {
 
     val allPurchases: Flow<List<Purchase>> = dao.getAllPurchases()
     suspend fun recordPurchase(purchase: Purchase) = withContext(Dispatchers.IO) { dao.recordPurchase(purchase) }
+    suspend fun recordPurchaseWithInventory(purchase: Purchase, inventoryItemCode: String?, actionId: String) =
+        withContext(Dispatchers.IO) { dao.recordPurchaseWithInventory(purchase, inventoryItemCode, actionId) }
     suspend fun deletePurchase(purchase: Purchase) = withContext(Dispatchers.IO) { dao.deletePurchaseAndReverse(purchase) }
 
     val allSales: Flow<List<Sale>> = dao.getAllSales()
     suspend fun recordSale(sale: Sale) = withContext(Dispatchers.IO) { dao.recordSale(sale) }
+    suspend fun recordSaleWithInventory(sale: Sale, inventoryItemCode: String?, actionId: String) =
+        withContext(Dispatchers.IO) { dao.recordSaleWithInventory(sale, inventoryItemCode, actionId) }
     suspend fun deleteSale(sale: Sale) = withContext(Dispatchers.IO) { dao.deleteSaleAndReverse(sale) }
 
     val allTreasuryTransactions: Flow<List<TreasuryTransaction>> = dao.getAllTreasuryTransactions()
