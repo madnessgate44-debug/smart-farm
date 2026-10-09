@@ -24,6 +24,8 @@
 </style></head>
 <body><div class="app"><header><div class="brand"><h1>🌾 بليغ</h1><p>العقل التشغيلي للمزرعة</p></div><span class="status" id="status">● جاهز</span></header><main id="main"></main></div>
 <script>
+const main=document.getElementById('main');
+const status=document.getElementById('status');
 const STORE='balegh_personal_v3';
 const base={profile:{name:'',farmName:'',location:'',size:'',lands:'',crops:'',livestock:'',workers:'',equipment:'',inventory:'',priorities:'',complete:false},workers:[],inventory:[],tasks:[],finance:[],attendance:[],events:[],memory:[],notes:[]};
 let s=JSON.parse(localStorage.getItem(STORE)||'null')||base;
@@ -53,9 +55,9 @@ function render(){
  '<div class="bottom"><button class="btn primary" onclick="toggle()">'+(listening?'إيقاف الاستماع':'ابدأ التحدث')+'</button><button class="btn" onclick="go(\'ماذا تستطيع أن تفعل؟\')">قدرات بليغ</button><button class="btn" onclick="resetDemo()">إعادة الإعداد</button></div>';
 }
 function renderOnboarding(){
- const p=s.profile,step=!p.farmName?1:!p.location?2:!p.lands?3:!p.crops?4:!p.workers?5:!p.livestock?6:!p.equipment?7:!p.inventory?8:!p.priorities?9:10;
- main.innerHTML='<section class="onboard"><div class="step">تهيئة بليغ • '+Math.min(step,9)+'/9</div><h3>خليني أتعرف على مزرعتك أولاً</h3><p>ده مش فورم. اتكلم معي بشكل طبيعي. سأحفظ ما تقوله، ولن أطلب نفس المعلومة مرة أخرى.</p><button class="btn primary" onclick="startOnboardVoice()">🎙️ ابدأ المحادثة</button><p class="small">أو اكتب إجابتك في الأسفل.</p></section><div class="log">'+s.events.slice(-8).reverse().map(x=>'<div class="msg '+(x.type==='user'?'user':'bot')+'">'+esc(x.text)+'</div>').join('')+'</div><div class="panel"><div class="row"><input id="textInput" class="input" placeholder="اكتب إجابتك لبليغ"><button class="btn primary" onclick="sendText()">إرسال</button></div></div>';
- if(step<=9&&!s.events.some(x=>x.type==='bot'&&x.text.includes(onboardQuestion(step))))setTimeout(()=>{let q=onboardQuestion(step);event('bot',q);render();speak(q)},100);
+ const p=s.profile,step=!p.name?1:!p.farmName?2:!p.location?3:!p.lands?4:!p.crops?5:!p.workers?6:!p.livestock?7:!p.equipment?8:!p.inventory?9:!p.priorities?10:11;
+ main.innerHTML='<section class="onboard"><div class="step">تهيئة بليغ • '+Math.min(step,10)+'/10</div><h3>خليني أتعرف على مزرعتك أولاً</h3><p>ده مش فورم. اتكلم معي بشكل طبيعي. سأحفظ ما تقوله، ولن أطلب نفس المعلومة مرة أخرى.</p><button class="btn primary" onclick="startOnboardVoice()">🎙️ ابدأ المحادثة</button><p class="small">أو اكتب إجابتك في الأسفل.</p></section><div class="log">'+s.events.slice(-8).reverse().map(x=>'<div class="msg '+(x.type==='user'?'user':'bot')+'">'+esc(x.text)+'</div>').join('')+'</div><div class="panel"><div class="row"><input id="textInput" class="input" placeholder="اكتب إجابتك لبليغ"><button class="btn primary" onclick="sendText()">إرسال</button></div></div>';
+ if(step<=10&&!s.events.some(x=>x.type==='bot'&&x.text.includes(onboardQuestion(step))))setTimeout(()=>{let q=onboardQuestion(step);event('bot',q);render();speak(q)},100);
 }
 function onboardQuestion(step){return ['','اسمك إيه؟','اسم المزرعة أو اسم المكان إيه؟','المزرعة فين؟','تقريباً كام أرض أو حقل عندك؟','إيه المحاصيل الأساسية؟','عندك عمال؟ كام واحد تقريباً؟','فيه حيوانات أو مواشي؟','إيه المعدات أو الآلات المهمة عندك؟','إيه أهم أصناف المخزن أو الاحتياجات اللي لازم أتابعها؟'][step]||'إيه أهم حاجة تحب بليغ يركز عليها في إدارة المزرعة؟'}
 function startOnboardVoice(){toggleVoice()}
@@ -138,7 +140,7 @@ function start(){
    rec.onresult=e=>{const text=e.results?.[0]?.[0]?.transcript?.trim();if(text)process(text);else event('system','لم ألتقط كلاماً واضحاً. حاول مرة أخرى.');};
    rec.onerror=e=>{
      listening=false;
-     const map={not-allowed:'إذن الميكروفون غير مسموح. اسمح به من إعدادات الموقع.',service-not-allowed:'خدمة التعرف الصوتي غير متاحة لهذا الموقع أو المتصفح.',no-speech:'لم أسمع كلاماً. اضغط الميكروفون وتحدث بوضوح.',audio-capture:'لم أستطع الوصول إلى الميكروفون.',network:'خدمة التعرف الصوتي لم تستجب. جرّب مرة أخرى.',aborted:'تم إيقاف الاستماع.'};
+     const map={'not-allowed':'إذن الميكروفون غير مسموح. اسمح به من إعدادات الموقع.','service-not-allowed':'خدمة التعرف الصوتي غير متاحة لهذا الموقع أو المتصفح.','no-speech':'لم أسمع كلاماً. اضغط الميكروفون وتحدث بوضوح.','audio-capture':'لم أستطع الوصول إلى الميكروفون.',network:'خدمة التعرف الصوتي لم تستجب. جرّب مرة أخرى.',aborted:'تم إيقاف الاستماع.'};
      if(e.error!=='aborted')event('system',map[e.error]||('تعذر التعرف على الكلام: '+e.error));
      if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture')auto=false;
      render();
