@@ -134,6 +134,9 @@ interface FarmDao {
     @Query("SELECT * FROM purchases ORDER BY date DESC")
     fun getAllPurchases(): Flow<List<Purchase>>
 
+    @Query("SELECT * FROM purchases WHERE notes LIKE '%' || :marker || '%' LIMIT 1")
+    suspend fun findPurchaseByMarker(marker: String): Purchase?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPurchase(purchase: Purchase): Long
 
@@ -143,6 +146,9 @@ interface FarmDao {
     // Sales
     @Query("SELECT * FROM sales ORDER BY date DESC")
     fun getAllSales(): Flow<List<Sale>>
+
+    @Query("SELECT * FROM sales WHERE notes LIKE '%' || :marker || '%' LIMIT 1")
+    suspend fun findSaleByMarker(marker: String): Sale?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSale(sale: Sale): Long
@@ -220,6 +226,88 @@ interface FarmDao {
     fun getMonthlyPurchases(month: String): Flow<Double?>
 
     // ============ Transactional Business Operations ============
+
+    @Transaction
+    suspend fun recordPurchaseWithInventory(purchase: Purchase, inventoryItemCode: String?, actionId: String): Long {
+        val marker = "BaleeghActionId=" + actionId
+        val existing = findPurchaseByMarker(marker)
+        if (existing != null) return existing.id.toLong()
+
+        val recorded = purchase.copy(notes = (purchase.notes + " " + marker).trim())
+        val purchaseId = insertPurchase(recorded)
+        if (recorded.paid > 0) {
+            insertTreasuryTransaction(
+                TreasuryTransaction(
+                    date = recorded.date,
+                    transactionType = "صرف",
+                    amount = recorded.paid,
+                    category = "مشتريات",
+                    description = "شراء " + recorded.item,
+                    sourceType = "PURCHASE",
+                    sourceId = purchaseId.toInt()
+                )
+            )
+        }
+        if (inventoryItemCode != null) {
+            val item = getInventoryItemForUpdate(inventoryItemCode)
+                ?: throw IllegalStateException("Inventory item no longer exists.")
+            val updated = guardedUpdateBalance(inventoryItemCode, recorded.quantity)
+            if (updated == 0) throw IllegalStateException("Could not update inventory balance.")
+            insertInventoryMovement(
+                InventoryMovement(
+                    itemCode = inventoryItemCode,
+                    date = recorded.date,
+                    movementType = "استلام شراء",
+                    quantity = recorded.quantity,
+                    unitCost = recorded.unitPrice,
+                    totalCost = recorded.totalCost,
+                    notes = marker
+                )
+            )
+        }
+        return purchaseId
+    }
+
+    @Transaction
+    suspend fun recordSaleWithInventory(sale: Sale, inventoryItemCode: String?, actionId: String): Long {
+        val marker = "BaleeghActionId=" + actionId
+        val existing = findSaleByMarker(marker)
+        if (existing != null) return existing.id.toLong()
+
+        val recorded = sale.copy(notes = (sale.notes + " " + marker).trim())
+        val saleId = insertSale(recorded)
+        if (recorded.received > 0) {
+            insertTreasuryTransaction(
+                TreasuryTransaction(
+                    date = recorded.date,
+                    transactionType = "إيداع",
+                    amount = recorded.received,
+                    category = "مبيعات",
+                    description = "بيع " + recorded.item,
+                    sourceType = "SALE",
+                    sourceId = saleId.toInt()
+                )
+            )
+        }
+        if (inventoryItemCode != null) {
+            val item = getInventoryItemForUpdate(inventoryItemCode)
+                ?: throw IllegalStateException("Inventory item no longer exists.")
+            val updated = guardedUpdateBalance(inventoryItemCode, -recorded.quantity)
+            if (updated == 0) throw IllegalStateException("Insufficient inventory balance for this sale.")
+            insertInventoryMovement(
+                InventoryMovement(
+                    itemCode = inventoryItemCode,
+                    date = recorded.date,
+                    movementType = "صرف بيع",
+                    quantity = recorded.quantity,
+                    unitCost = recorded.unitPrice,
+                    totalCost = recorded.totalRevenue,
+                    notes = marker
+                )
+            )
+        }
+        return saleId
+    }
 
     @Transaction
     suspend fun recordPurchase(purchase: Purchase): Long {
