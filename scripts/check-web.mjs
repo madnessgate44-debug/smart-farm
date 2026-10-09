@@ -3,11 +3,11 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const html = readFileSync('index.html', 'utf8');
-const scripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(match => match[1]);
+const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]);
 assert.equal(scripts.length, 1, 'Expected exactly one inline application script.');
 assert.match(html, /البيانات محفوظة في المتصفح ده فقط/);
 assert.match(html, /مش متصلة بقاعدة بيانات تطبيق Android/);
-assert.doesNotMatch(html, /\\sonclick\\s*=/i, 'Use delegated event handlers rather than inline click handlers.');
+assert.doesNotMatch(html, /\sonclick\s*=/i, 'Use delegated event handlers rather than inline click handlers.');
 new vm.Script(scripts[0], { filename: 'index.html:inline-script.js' });
 
 function createPage(storageSeed = {}) {
