@@ -33,3 +33,4 @@ val FarmInk = Color(0xFF24332A)
 val FarmMuted = Color(0xFF657267)
 val FarmBorder = Color(0xFFE2DDCF)
 val FarmAccent = ForestGold
+val FarmOlive = Color(0xFF6F7650)
