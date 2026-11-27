@@ -13,11 +13,18 @@ private val LightColorScheme = lightColorScheme(
     primary = EmeraldGreen,
     onPrimary = SurfaceLight,
     primaryContainer = EmeraldGreenLight,
+    onPrimaryContainer = CharcoalTeal,
     secondary = ForestGold,
-    onSecondary = SurfaceLight,
+    onSecondary = CharcoalTeal,
     secondaryContainer = ForestGoldLight,
-    background = WarmSlate,
-    surface = SurfaceLight,
+    onSecondaryContainer = CharcoalTeal,
+    background = FarmCanvas,
+    onBackground = FarmInk,
+    surface = FarmSurface,
+    onSurface = FarmInk,
+    surfaceVariant = Color(0xFFECE7DA),
+    onSurfaceVariant = FarmMuted,
+    outline = FarmBorder,
     error = HighPriorityRed
 )
 
@@ -25,11 +32,18 @@ private val DarkColorScheme = darkColorScheme(
     primary = EmeraldGreenLight,
     onPrimary = CharcoalTeal,
     primaryContainer = EmeraldGreenDark,
+    onPrimaryContainer = Color(0xFFEAF3E9),
     secondary = ForestGoldLight,
     onSecondary = CharcoalTeal,
     secondaryContainer = ForestGoldDark,
+    onSecondaryContainer = Color(0xFFFFF2D5),
     background = CharcoalTeal,
+    onBackground = Color(0xFFF0F1E9),
     surface = SurfaceDark,
+    onSurface = Color(0xFFF0F1E9),
+    surfaceVariant = Color(0xFF35443A),
+    onSurfaceVariant = Color(0xFFC2CBBF),
+    outline = Color(0xFF59685C),
     error = HighPriorityRed
 )
 
@@ -44,7 +58,7 @@ fun SmartFarmTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = colorScheme.background.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
