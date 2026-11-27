@@ -23,13 +23,13 @@ fun HomeDashboard(viewModel: FarmViewModel) {
     val todayTasks by viewModel.tasks.collectAsState()
 
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(22.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("🌾 صباح الخير يا باشا", style = MaterialTheme.typography.headlineMedium)
@@ -38,35 +38,35 @@ fun HomeDashboard(viewModel: FarmViewModel) {
         }
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            DashboardCard("المهام", "${summary.totalTasks}", "📋", Color(0xFF3B82F6), Modifier.weight(1f))
-            DashboardCard("مكتملة", "${summary.completedTasks}", "✅", Color(0xFF10B981), Modifier.weight(1f))
-            DashboardCard("العمال", "${summary.presentWorkers}", "👷", Color(0xFFF59E0B), Modifier.weight(1f))
-            DashboardCard("تنبيهات", "${summary.lowStockCount + summary.activeDebtsCount}", "🔔", Color(0xFFEF4444), Modifier.weight(1f))
+            DashboardCard("المهام", "${summary.totalTasks}", "📋", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+            DashboardCard("مكتملة", "${summary.completedTasks}", "✅", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            DashboardCard("العمال", "${summary.presentWorkers}", "👷", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+            DashboardCard("تنبيهات", "${summary.lowStockCount + summary.activeDebtsCount}", "🔔", MaterialTheme.colorScheme.error, Modifier.weight(1f))
         }
 
-        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp)) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text("💰 الملخص المالي للشهر", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("الإيرادات:"); Text("${String.format("%,.0f", summary.monthlyRevenue)} ج", color = Color(0xFF10B981))
+                    Text("الإيرادات:"); Text("${String.format("%,.0f", summary.monthlyRevenue)} ج", color = MaterialTheme.colorScheme.primary)
                 }
                 Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("المصروفات:"); Text("${String.format("%,.0f", summary.monthlyExpenses)} ج", color = Color(0xFFEF4444))
+                    Text("المصروفات:"); Text("${String.format("%,.0f", summary.monthlyExpenses)} ج", color = MaterialTheme.colorScheme.error)
                 }
                 Divider(modifier = Modifier.padding(vertical = 4.dp))
                 Row(horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("الصافي:", style = MaterialTheme.typography.titleSmall)
                     Text("${String.format("%,.0f", summary.monthlyRevenue - summary.monthlyExpenses)} ج",
-                        color = if (summary.monthlyRevenue >= summary.monthlyExpenses) Color(0xFF10B981) else Color(0xFFEF4444))
+                        color = if (summary.monthlyRevenue >= summary.monthlyExpenses) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
                 }
             }
         }
 
         if (lowStock.isNotEmpty() || activeDebts.isNotEmpty()) {
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7)), shape = RoundedCornerShape(12.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), shape = RoundedCornerShape(12.dp)) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("⚠️ تنبيهات هامة", style = MaterialTheme.typography.titleSmall, color = Color(0xFFD97706))
+                    Text("⚠️ تنبيهات هامة", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                     lowStock.take(3).forEach { item ->
                         Text("• مخزون ${item.name} منخفض (${item.currentBalance} ${item.unit})", style = MaterialTheme.typography.bodySmall)
                     }
@@ -81,7 +81,7 @@ fun HomeDashboard(viewModel: FarmViewModel) {
 
 @Composable
 fun DashboardCard(title: String, value: String, emoji: String, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)), shape = RoundedCornerShape(10.dp)) {
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)), shape = RoundedCornerShape(16.dp)) {
         Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(emoji, style = MaterialTheme.typography.headlineSmall)
             Text(value, style = MaterialTheme.typography.titleMedium, color = color)
